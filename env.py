@@ -34,7 +34,11 @@ class RiderEnv:
         gradient: Callable[[float], float],
         distance: int = 1000,
         num_actions: int = 10,
+        reward: Callable[[int], float] = None,
     ):
+        if not callable(gradient):
+            raise ValueError("Gradient must be a callable function")
+
         self.render_mode = None
 
         self.course_fn = gradient
@@ -59,6 +63,8 @@ class RiderEnv:
         )
         self.action_space = Discrete(num_actions)
 
+        self.reward = reward if reward else self.default_reward
+
         # Environment variables
         # ---------------------------
         self.step_count = 0
@@ -74,11 +80,11 @@ class RiderEnv:
         # We need to return a numpy array for the neural network to work
         return np.array(
             [
-                max_power(self.cur_AWC_j),
-                self.cur_velocity,
-                self.course_fn(self.cur_position),
-                self.cur_position / self.COURSE_DISTANCE,
-                self.cur_AWC_j,
+                max_power(self.cur_AWC_j),  # power_max_w
+                self.cur_velocity,  # velocity
+                self.course_fn(self.cur_position),  # gradient
+                self.cur_position / self.COURSE_DISTANCE,  # percent_complete
+                self.cur_AWC_j,  # AWC
             ]
         )
 
@@ -168,7 +174,7 @@ class RiderEnv:
         if self.cur_position >= self.COURSE_DISTANCE:
             terminated = 1
 
-        reward = self.default_reward()
+        reward = self.reward(self.state)
 
         # State and info
         # -------------------------------------------------

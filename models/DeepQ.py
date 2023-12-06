@@ -117,6 +117,28 @@ env = FlattenObservation(env)
 input_dims = env.observation_space.shape[0]
 output_dims = env.action_space.n + 1
 
+
+def reward(state):
+    reward = -1
+    """
+    state = [
+        power_max_w,
+        velocity,
+        gradient,
+        percent_complete,
+        AWC
+    ]
+    """
+
+    power_max_w = state[0]
+    velocity = state[1]
+    gradient = state[2]
+    percent_complete = state[3]
+    AWC = state[4]
+
+    return reward
+
+
 # Create the agent
 agent = DeepQ(input_dims, output_dims, batch_size=32)
 
