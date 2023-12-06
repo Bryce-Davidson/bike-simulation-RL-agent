@@ -87,8 +87,6 @@ class RiderEnv:
         # -------------------------------------------------
         if self.action_space.n < action < 0:
             raise ValueError("Invalid action")
-        if type(action) != int:
-            raise TypeError(f"Expected int, got {type(action)}")
 
         # Step count
         self.step_count += 1

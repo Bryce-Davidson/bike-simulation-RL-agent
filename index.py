@@ -9,24 +9,40 @@ from courses import tenByOneKm, flat, rollingHills, complicated
 from env import RiderEnv
 from lib.JsonEncoders import NpEncoder
 
+WEIGHTS_FOLDER_PATH = "./models/weights/"
+MODEL_WEIGHTS_FILE_NAME = "DMC-100km-tenByOneKm-06-12-2023_00:15.keras"
+
+# load the model from the .keras file
+model = keras.models.load_model(f"{WEIGHTS_FOLDER_PATH}/{MODEL_WEIGHTS_FILE_NAME}")
+
 if __name__ == "__main__":
-    env = RiderEnv(gradient=tenByOneKm, distance=4000)
-    env = FlattenObservation(env)
+    env = RiderEnv(gradient=tenByOneKm, distance=100)
 
     data = []
 
-    observation, info = env.reset()
+    state, info = env.reset()
 
     while env.cur_position < env.COURSE_DISTANCE:
-        observation = np.array([observation])
+        state = np.array([state])
 
-        action = 10
+        action_values = model.predict(state, verbose=0)[0]
+        action = np.argmax(action_values)
 
-        observation, reward, terminated, truncated, info = env.step(action)
+        state, reward, terminated, truncated, info = env.step(action)
 
-        print(json.dumps(info, indent=4, cls=NpEncoder))
+        print(
+            json.dumps(
+                {
+                    **info,
+                    "all_action_values": action_values,
+                    "predicted_reward": action_values[action],
+                },
+                indent=4,
+                cls=NpEncoder,
+            )
+        )
 
         data.append(info)
-        # time.sleep(1)
+        time.sleep(1)
 
         save_data("test", data)
