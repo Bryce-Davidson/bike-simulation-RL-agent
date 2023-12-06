@@ -90,17 +90,16 @@ class RiderEnv:
             ]
         )
 
-    def info(self, action, power_agent_w, reward):
+    def info(self, **kwargs):
+        state = self.state
         return {
-            "power_max_w": max_power(self.cur_AWC_j),
-            "velocity": self.cur_velocity,
-            "gradient": self.course_fn(self.cur_position),
-            "percent_complete": self.cur_position / self.COURSE_DISTANCE,
-            "AWC": self.cur_AWC_j,
+            "power_max_w": state[0],
+            "velocity": state[1],
+            "gradient": state[2],
+            "percent_complete": state[3],
+            "AWC": state[4],
             "position": self.cur_position,
-            "action": action,
-            "power_output": power_agent_w,
-            "reward": reward,
+            **kwargs,
         }
 
     def step(self, action: int):
@@ -180,10 +179,16 @@ class RiderEnv:
 
         reward = self.reward(self.state)
 
-        # State and info
+        # Info
         # -------------------------------------------------
 
-        info = self.info(action, power_agent_w, reward)
+        info = self.info(
+            {
+                "action": action,
+                "power_agent_w": power_agent_w,
+                "reward": reward,
+            }
+        )
 
         return self.state, reward, terminated, truncated, info
 
@@ -193,6 +198,6 @@ class RiderEnv:
         self.cur_velocity = 0
         self.cur_position = start if start else self.START_DISTANCE
 
-        info = self.info(action=None, power_agent_w=None, reward=None)
+        info = self.info()
 
         return self.state, info
