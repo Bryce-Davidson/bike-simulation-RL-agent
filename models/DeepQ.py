@@ -110,7 +110,7 @@ with open(episode_data_file_path, "w") as f:
     f.write("episode,total_reward,steps\n")
 
 
-env = RiderEnv(gradient=tenByOneKm, distance=4000)
+env = RiderEnv(gradient=tenByOneKm, distance=1000)
 env = FlattenObservation(env)
 
 # Define the input and output dimensions
@@ -135,6 +135,9 @@ def reward(state):
     gradient = state[2]
     percent_complete = state[3]
     AWC = state[4]
+
+    if env.cur_position >= env.COURSE_DISTANCE:
+        reward += 100
 
     return reward
 
