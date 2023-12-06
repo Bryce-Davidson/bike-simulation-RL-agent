@@ -37,9 +37,9 @@ class DeepMonteCarlo:
     def build_model(self):
         model = keras.models.Sequential()
 
-        model.add(Dense(100, input_dim=self.input_dims, activation="relu"))
+        model.add(Dense(64, input_dim=self.input_dims, activation="relu"))
 
-        model.add(Dense(100, activation="relu"))
+        model.add(Dense(64, activation="relu"))
 
         model.add(Dense(self.output_dims, activation="linear"))
 
