@@ -1,14 +1,13 @@
-from lib import save_data
+from lib.save_data import save_data
 from gym.wrappers import FlattenObservation
-import pandas as pd
 import numpy as np
 import keras
 import time
 import json
 
 from courses import tenByOneKm, flat, rollingHills, complicated
-from env import RiderEnv, NpEncoder
-
+from env import RiderEnv
+from lib.NpEncoder import NpEncoder
 
 if __name__ == "__main__":
     env = RiderEnv(gradient=tenByOneKm, distance=4000)
@@ -30,4 +29,4 @@ if __name__ == "__main__":
         data.append(info)
         # time.sleep(1)
 
-        save_data.save_data('test', data)
+        save_data("test", data)

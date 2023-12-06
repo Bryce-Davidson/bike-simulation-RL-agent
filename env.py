@@ -1,4 +1,6 @@
 from typing import Callable
+import sys
+
 import numpy as np
 from gym.spaces import Box, Discrete, Tuple
 
@@ -55,7 +57,7 @@ class RiderEnv:
 
         # Environment variables
         # ---------------------------
-        self.time_step = 0
+        self.step_count = 0
 
         # Agent variables
         # ---------------------------
@@ -64,6 +66,16 @@ class RiderEnv:
         self.cur_position = self.START_DISTANCE
 
     def step(self, action: int):
+        # Error handling
+        # -------------------------------------------------
+        if self.action_space.n < action < 0:
+            raise ValueError("Invalid action")
+        if type(action) != int:
+            raise TypeError("Action must be an integer")
+
+        # Step count
+        self.step_count += 1
+
         # Normalize action
         action = action / self.action_space.n
 
@@ -125,6 +137,7 @@ class RiderEnv:
         # -----------------------
 
         terminated = 0
+        truncated = 0
         reward = -1
 
         if self.cur_position >= self.COURSE_DISTANCE:
@@ -134,10 +147,10 @@ class RiderEnv:
         if self.cur_velocity <= 0:
             reward -= 100
 
-        # Observation and info
+        # State and info
         # -------------------------------------------------
 
-        observation = [
+        state = [
             power_max_w,
             self.cur_velocity,
             slope_percent,
@@ -146,37 +159,42 @@ class RiderEnv:
         ]
 
         info = {
-            **observation,
+            "power_max_w": power_max_w,
+            "velocity": self.cur_velocity,
+            "gradient": slope_percent,
+            "percent_complete": self.cur_position / self.COURSE_DISTANCE,
+            "AWC": self.cur_AWC_j,
             "position": self.cur_position,
             "action": action,
             "power_output": power_agent_w,
             "reward": reward,
         }
 
-        self.time_step += 1
-
-        truncated = 0
-        return observation, reward, terminated, truncated, info
+        return state, reward, terminated, truncated, info
 
     def reset(self, start: int = None):
         self.cur_AWC_j = RIDER_AWC_j
         self.cur_velocity = 0
         self.cur_position = start if start else self.START_DISTANCE
 
-        observation = {
+        state = [
+            max_power(self.cur_AWC_j),
+            self.cur_velocity,
+            self.course_fn(self.cur_position),
+            self.cur_position / self.COURSE_DISTANCE,
+            self.cur_AWC_j,
+        ]
+
+        info = {
             "power_max_w": max_power(self.cur_AWC_j),
             "velocity": self.cur_velocity,
             "gradient": self.course_fn(self.cur_position),
             "percent_complete": self.cur_position / self.COURSE_DISTANCE,
             "AWC": self.cur_AWC_j,
-        }
-
-        info = {
-            **observation,
             "position": self.cur_position,
             "action": None,
             "power_output": None,
             "reward": None,
         }
 
-        return observation, info
+        return state, info
