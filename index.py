@@ -10,7 +10,7 @@ from env import RiderEnv
 from lib.JsonEncoders import NpEncoder
 
 WEIGHTS_FOLDER_PATH = "./models/weights/"
-MODEL_WEIGHTS_FILE_NAME = "DMC-100km-tenByOneKm-06-12-2023_00:22.keras"
+MODEL_WEIGHTS_FILE_NAME = "DMC-100m-tenByOneKm-06-12-2023_13:49.keras"
 
 # load the model from the .keras file
 model = keras.models.load_model(f"{WEIGHTS_FOLDER_PATH}/{MODEL_WEIGHTS_FILE_NAME}")
@@ -28,13 +28,15 @@ if __name__ == "__main__":
         action_values = model.predict(state, verbose=0)[0]
         action = np.argmax(action_values)
 
+        # action = 10
+
         state, reward, terminated, truncated, info = env.step(action)
 
         print(
             json.dumps(
                 {
                     **info,
-                    "all_action_values": action_values,
+                    # "all_action_values": action_values,
                     "predicted_reward": action_values[action],
                 },
                 indent=4,
@@ -43,6 +45,6 @@ if __name__ == "__main__":
         )
 
         data.append(info)
-        time.sleep(1)
+        time.sleep(0.11)
 
-        save_data("test", data)
+        save_data("100_rider", data)

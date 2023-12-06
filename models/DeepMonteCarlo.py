@@ -31,15 +31,15 @@ class DeepMonteCarlo:
         self.states = []
         self.actions = []
 
-        self.learning_rate = 0.01
+        self.learning_rate = 0.001
         self.model = self.build_model()
 
     def build_model(self):
         model = keras.models.Sequential()
 
-        model.add(Dense(64, input_dim=self.input_dims, activation="relu"))
+        model.add(Dense(24, input_dim=self.input_dims, activation="relu"))
 
-        model.add(Dense(64, activation="relu"))
+        model.add(Dense(24, activation="relu"))
 
         model.add(Dense(self.output_dims, activation="linear"))
 
@@ -78,11 +78,14 @@ class DeepMonteCarlo:
         if np.random.rand() <= self.epsilon:
             random_action = random.randrange(self.output_dims)
 
+            # print(f"Random action: {random_action}")
             return random_action
 
         state = np.array([state])
         act_values = self.model.predict(state, verbose=0)
         predicted_action = np.argmax(act_values[0])
+
+        # print(f"Predicted action: {predicted_action}")
 
         return int(predicted_action)
 
@@ -93,7 +96,7 @@ class DeepMonteCarlo:
 # -------------------------LOGS---------------------------------
 
 course = "tenByOneKm"
-distance = 100
+distance = 10_000
 
 log_path = f"../logs/"
 
@@ -111,7 +114,7 @@ output_dims = env.action_space.n + 1
 # # Create the agent
 agent = DeepMonteCarlo(input_dims, output_dims)
 
-episodes = 10000
+episodes = 100000
 for e in range(episodes):
     cur_state, cur_info = env.reset()
 

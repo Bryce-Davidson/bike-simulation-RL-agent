@@ -28,7 +28,7 @@ def max_power(AWC_j):
     return 7e-6 * AWC_j**2 + 0.0023 * AWC_j + RIDER_CP_w
 
 
-class RiderEnv:
+class RiderEnvGhost:
     def __init__(
         self,
         gradient: Callable[[float], float],
@@ -81,17 +81,6 @@ class RiderEnv:
                 self.cur_AWC_j,
             ]
         )
-
-    def default_reward(self: int) -> float:
-        reward = -1
-
-        if self.cur_position >= self.COURSE_DISTANCE:
-            reward += 100
-
-        if self.cur_velocity <= 0:
-            reward -= 100
-
-        return reward
 
     def step(self, action: int):
         # Error handling
@@ -164,11 +153,14 @@ class RiderEnv:
 
         terminated = 0
         truncated = 0
+        reward = -1
 
         if self.cur_position >= self.COURSE_DISTANCE:
+            reward += 100
             terminated = 1
 
-        reward = self.default_reward()
+        if self.cur_velocity <= 0:
+            reward -= 100
 
         # State and info
         # -------------------------------------------------
