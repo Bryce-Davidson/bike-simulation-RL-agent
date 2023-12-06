@@ -9,7 +9,7 @@ import random
 import json
 
 
-class DeepQLearning:
+class DeepQ:
     def __init__(self, input_dims, output_dims, batch_size=32):
         self.input_dims = input_dims
         self.output_dims = output_dims
@@ -118,7 +118,7 @@ input_dims = env.observation_space.shape[0]
 output_dims = env.action_space.n + 1
 
 # Create the agent
-agent = DeepQLearning(input_dims, output_dims, batch_size=32)
+agent = DeepQ(input_dims, output_dims, batch_size=32)
 
 # Define the number of episodes
 episodes = 600

@@ -1,13 +1,20 @@
+import sys
+import os
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 import datetime
 from lib.logs import write_episode_data_to_csv
-from env import RiderEnv, NpEncoder
+from env import RiderEnv
 from courses import tenByOneKm, rollingHills, complicated
 from keras.optimizers.legacy import Adam
 from keras.layers import Dense, Dropout
 import keras
 import numpy as np
 import random
-import json
+
+# stop numpy from printing in scientific notation
+np.set_printoptions(suppress=True)
 
 
 class DeepMonteCarlo:
@@ -20,6 +27,7 @@ class DeepMonteCarlo:
         self.epsilon_min = 0.01  # minimum exploration rate
         self.epsilon_decay = 0.9995  # exploration decay rate
 
+        # An array of state, action pairs
         self.memories = []
 
         self.learning_rate = 0.001
@@ -41,12 +49,30 @@ class DeepMonteCarlo:
     def forget(self):
         self.memories = []
 
-    def remember(self, state, action, reward, next_state, terminated):
-        self.memories.append((state, action, reward, next_state, terminated))
+    def remember(self, state, action):
+        self.memories.append((state, action))
 
     def replay(self, total_reward: int):
+        states = []
+        targets = []
+
+        for i, (state, action) in enumerate(self.memories):
+            states.append(state)
+            current = self.model.predict(np.array([state]), verbose=0)
+            current[0][action] = total_reward
+            targets.append(current)
+
+        self.model.fit(
+            np.array(states),
+            np.array(targets),
+            epochs=1,
+            verbose=1,
+        )
+
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay
+
+        self.forget()
 
     def act(self, state):
         if np.random.rand() <= self.epsilon:
@@ -58,7 +84,7 @@ class DeepMonteCarlo:
         act_values = self.model.predict(state, verbose=0)
         predicted_action = np.argmax(act_values[0])
 
-        return predicted_action
+        return int(predicted_action)
 
     def save(self, name):
         self.model.save(name)
@@ -70,29 +96,25 @@ episode_data_file_path = f"./logs/DeepMomteCarlo/{datetime.datetime.now().strfti
 
 # -------------------------TRAINING-----------------------------
 
-env = RiderEnv(gradient=rollingHills, distance=3000)
+env = RiderEnv(gradient=tenByOneKm, distance=100)
 
-input_dims = env.observation_space.shape[0]
+input_dims = len(env.observation_space)
 output_dims = env.action_space.n + 1
 
-# Create the agent
+# # Create the agent
 agent = DeepMonteCarlo(input_dims, output_dims)
 
-episodes = 600
+episodes = 1000
 for e in range(episodes):
     cur_state, cur_info = env.reset()
 
     total_reward = 0
     while True:
-        print(f"---------Episode: {e+1}, Step: {env.step_count}---------")
-        print(f"Epsilon: {agent.epsilon}")
-        print(json.dumps(cur_info, indent=4, cls=NpEncoder))
-
         action = agent.act(cur_state)
 
         next_state, reward, terminated, truncated, next_info = env.step(action)
 
-        agent.remember(cur_state, action, reward, next_state, terminated)
+        agent.remember(cur_state, action)
 
         cur_state, cur_info = next_state, next_info
 
@@ -108,4 +130,11 @@ for e in range(episodes):
                 steps=env.step_count,
                 exit_reason="terminated" if terminated else "truncated",
             )
+
+            print(f"---------Episode: {e+1}-----------")
+            print(f"Epsilon: {agent.epsilon}")
+            print(f"Total reward: {total_reward}")
+            print(f"Steps: {env.step_count}")
+            print(f"Exit reason: {'terminated' if terminated else 'truncated'}")
+
             break

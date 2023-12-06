@@ -1,6 +1,9 @@
-from typing import Callable
 import sys
+import os
 
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+from typing import Callable
 import numpy as np
 from gym.spaces import Box, Discrete, Tuple
 
@@ -35,6 +38,7 @@ class RiderEnv:
         self.render_mode = None
 
         self.course_fn = gradient
+        self.START_DISTANCE = 0
         self.COURSE_DISTANCE = distance
 
         # State/Action spaces
@@ -66,7 +70,7 @@ class RiderEnv:
         self.cur_position = self.START_DISTANCE
 
     @property
-    def state(self, *args, **kwargs) -> np.ndarray:
+    def state(self) -> np.ndarray:
         # We need to return a numpy array for the neural network to work
         return np.array(
             [
@@ -78,7 +82,7 @@ class RiderEnv:
             ]
         )
 
-    def step(self, action: int) -> Tuple[np.ndarray, float, bool, bool, dict]:
+    def step(self, action: int):
         # Error handling
         # -------------------------------------------------
         if self.action_space.n < action < 0:
@@ -175,7 +179,7 @@ class RiderEnv:
             "reward": reward,
         }
 
-        return self.state(), reward, terminated, truncated, info
+        return self.state, reward, terminated, truncated, info
 
     def reset(self, start: int = None):
         self.step_count = 0
@@ -195,4 +199,4 @@ class RiderEnv:
             "reward": None,
         }
 
-        return self.state(), info
+        return self.state, info
