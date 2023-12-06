@@ -126,7 +126,6 @@ log_slug = f"{log_path}{slug}.csv"
 
 
 def reward_fn(state):
-    reward = -1
     """
     state = [
         power_max_w,
@@ -142,6 +141,8 @@ def reward_fn(state):
     gradient = state[2]
     percent_complete = state[3]
     AWC = state[4]
+
+    reward = -1
 
     if percent_complete >= 1:
         reward = 1000

@@ -90,7 +90,7 @@ class RiderEnv:
             ]
         )
 
-    def info(self, meta):
+    def info(self, meta: dict) -> dict:
         state = self.state
         return {
             "power_max_w": state[0],
@@ -198,6 +198,4 @@ class RiderEnv:
         self.cur_velocity = 0
         self.cur_position = start if start else self.START_DISTANCE
 
-        info = self.info()
-
-        return self.state, info
+        return self.state, self.info()
