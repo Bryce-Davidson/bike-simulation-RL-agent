@@ -87,16 +87,18 @@ class DeepMonteCarlo:
         return int(predicted_action)
 
     def save(self, name):
-        self.model.save(name)
+        self.model.save(overwrite=True, filepath=f"./weights/{name}")
 
 
 # -------------------------LOGGING-----------------------------
 
-episode_data_file_path = f"./logs/DeepMomteCarlo/{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}_episodes.csv"
+course = "tenByOneKm"
+distance = 100
+log_slug = f"DMC-{distance}km-{course}-{datetime.datetime.now().strftime('%d-%m-%Y_%H:%M')}.csv"
 
 # -------------------------TRAINING-----------------------------
 
-env = RiderEnv(gradient=tenByOneKm, distance=100)
+env = RiderEnv(gradient=tenByOneKm, distance=distance)
 
 input_dims = len(env.observation_space)
 output_dims = env.action_space.n + 1
@@ -124,12 +126,14 @@ for e in range(episodes):
             agent.replay(total_reward)
 
             write_episode_data_to_csv(
-                episode_data_file_path,
+                log_slug,
                 total_reward,
                 episode_number=e,
                 steps=env.step_count,
                 exit_reason="terminated" if terminated else "truncated",
             )
+
+            agent.save(log_slug)
 
             print(f"---------Episode: {e+1}-----------")
             print(f"Epsilon: {agent.epsilon}")
