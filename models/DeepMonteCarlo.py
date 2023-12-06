@@ -28,7 +28,8 @@ class DeepMonteCarlo:
         self.epsilon_decay = 0.995  # exploration decay rate
 
         # An array of state, action pairs
-        self.memories = []
+        self.states = []
+        self.actions = []
 
         self.learning_rate = 0.01
         self.model = self.build_model()
@@ -47,24 +48,24 @@ class DeepMonteCarlo:
         return model
 
     def forget(self):
-        self.memories = []
+        self.states = []
+        self.actions = []
 
     def remember(self, state, action):
-        self.memories.append((state, action))
+        self.states.append(state)
+        self.actions.append(action)
 
     def replay(self, total_reward: int):
-        states = []
-        targets = []
+        training_states = np.array(self.states)
+        currents = self.model.predict(training_states, verbose=0)
 
-        for i, (state, action) in enumerate(self.memories):
-            states.append(state)
-            current = self.model.predict(np.array([state]), verbose=0)
-            current[0][action] = total_reward
-            targets.append(current)
+        for i in range(len(self.states)):
+            action = self.actions[i]
+            currents[i][action] = total_reward
 
         self.model.fit(
-            np.array(states),
-            np.array(targets),
+            training_states,
+            currents,
             epochs=1,
             verbose=1,
         )
