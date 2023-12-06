@@ -22,10 +22,10 @@ class DeepMonteCarlo:
         self.input_dims = input_dims
         self.output_dims = output_dims
 
-        self.gamma = 0.1  # discount rate
+        self.gamma = 0.5  # discountL rate
         self.epsilon = 1  # initial exploration rate
         self.epsilon_min = 0.01  # minimum exploration rate
-        self.epsilon_decay = 0.9  # exploration decay rate
+        self.epsilon_decay = 0.995  # exploration decay rate
 
         # An array of state, action pairs
         self.memories = []
