@@ -8,16 +8,17 @@ import numpy as np
 import random
 import json
 
-class DQNAgent:
+
+class DeepQLearning:
     def __init__(self, input_dims, output_dims, batch_size=32):
         self.input_dims = input_dims
         self.output_dims = output_dims
         self.batch_size = batch_size
 
-        self.gamma = 0.1 # discount rate
-        self.epsilon = 1 # initial exploration rate
-        self.epsilon_min = 0.01 # minimum exploration rate
-        self.epsilon_decay = 0.9995 # exploration decay rate
+        self.gamma = 0.1  # discount rate
+        self.epsilon = 1  # initial exploration rate
+        self.epsilon_min = 0.01  # minimum exploration rate
+        self.epsilon_decay = 0.9995  # exploration decay rate
 
         self.memory_size = 1000
         self.memories = []
@@ -28,13 +29,13 @@ class DQNAgent:
     def build_model(self):
         model = keras.models.Sequential()
 
-        model.add(Dense(100, input_dim=self.input_dims, activation='relu'))
+        model.add(Dense(100, input_dim=self.input_dims, activation="relu"))
 
-        model.add(Dense(100, activation='relu'))
+        model.add(Dense(100, activation="relu"))
 
-        model.add(Dense(self.output_dims, activation='linear'))
+        model.add(Dense(self.output_dims, activation="linear"))
 
-        model.compile(loss='mse', optimizer=Adam(learning_rate=self.learning_rate))
+        model.compile(loss="mse", optimizer=Adam(learning_rate=self.learning_rate))
 
         return model
 
@@ -68,7 +69,9 @@ class DQNAgent:
             target = reward
 
             if not terminated:
-                target = reward + self.gamma * np.amax(self.model.predict(next_state, verbose=0)[0])
+                target = reward + self.gamma * np.amax(
+                    self.model.predict(next_state, verbose=0)[0]
+                )
 
             current = self.model.predict(state, verbose=0)
             current[0][action] = target
@@ -103,7 +106,7 @@ class DQNAgent:
 # ----------------------------------------------
 
 episode_data_file_path = "episode_logs.csv"
-with open(episode_data_file_path, 'w') as f:
+with open(episode_data_file_path, "w") as f:
     f.write("episode,total_reward,steps\n")
 
 
@@ -115,19 +118,17 @@ input_dims = env.observation_space.shape[0]
 output_dims = env.action_space.n + 1
 
 # Create the agent
-agent = DQNAgent(input_dims, output_dims, batch_size=32)
+agent = DeepQLearning(input_dims, output_dims, batch_size=32)
 
 # Define the number of episodes
 episodes = 600
-for e in range(1, episodes+1):
+for e in range(1, episodes + 1):
     # Reset the environment and get the initial state
-    cur_state, cur_info = env.reset(
-        START_DISTANCE=env.COURSE_DISTANCE - e*50)
+    cur_state, cur_info = env.reset(START_DISTANCE=env.COURSE_DISTANCE - e * 50)
 
     total_reward = 0
     cur_step = 0
     while True:
-
         action = agent.act(cur_state)
 
         next_state, reward, terminated, truncated, next_info = env.step(action)
@@ -145,15 +146,15 @@ for e in range(1, episodes+1):
 
         if terminated:
             data = {
-                "episode": e+1,
+                "episode": e + 1,
                 "total_reward": total_reward,
                 "steps": cur_step,
             }
             # Append the data to a file in CSV format
-            with open(episode_data_file_path, 'a') as f:
+            with open(episode_data_file_path, "a") as f:
                 f.write(f"{data['episode']},{data['total_reward']},{data['steps']}\n")
 
-            agent.save('DQN.keras')
+            agent.save("DQN.keras")
             break
 
         cur_step += 1

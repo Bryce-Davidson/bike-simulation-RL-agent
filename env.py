@@ -66,16 +66,21 @@ class RiderEnv:
         self.cur_position = self.START_DISTANCE
 
     @property
-    def state(self):
-        return [
-            max_power(self.cur_AWC_j),
-            self.cur_velocity,
-            self.course_fn(self.cur_position),
-            self.cur_position / self.COURSE_DISTANCE,
-            self.cur_AWC_j,
-        ]
+    def state(self, *args, **kwargs) -> np.ndarray:
+        # We need to return a numpy array for the neural network to work
+        return np.array(
+            [
+                [
+                    max_power(self.cur_AWC_j),
+                    self.cur_velocity,
+                    self.course_fn(self.cur_position),
+                    self.cur_position / self.COURSE_DISTANCE,
+                    self.cur_AWC_j,
+                ]
+            ]
+        )
 
-    def step(self, action: int):
+    def step(self, action: int) -> Tuple[np.ndarray, float, bool, bool, dict]:
         # Error handling
         # -------------------------------------------------
         if self.action_space.n < action < 0:
@@ -172,7 +177,7 @@ class RiderEnv:
             "reward": reward,
         }
 
-        return self.state, reward, terminated, truncated, info
+        return self.state(), reward, terminated, truncated, info
 
     def reset(self, start: int = None):
         self.cur_AWC_j = RIDER_AWC_j
@@ -191,4 +196,4 @@ class RiderEnv:
             "reward": None,
         }
 
-        return self.state, info
+        return self.state(), info

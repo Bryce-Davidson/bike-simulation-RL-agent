@@ -1,4 +1,4 @@
-from lib.save_data import save_data
+from lib.data import save_data
 from gym.wrappers import FlattenObservation
 import numpy as np
 import keras
@@ -7,7 +7,7 @@ import json
 
 from courses import tenByOneKm, flat, rollingHills, complicated
 from env import RiderEnv
-from lib.NpEncoder import NpEncoder
+from lib.JsonEncoders import NpEncoder
 
 if __name__ == "__main__":
     env = RiderEnv(gradient=tenByOneKm, distance=4000)
