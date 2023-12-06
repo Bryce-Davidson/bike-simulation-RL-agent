@@ -1,8 +1,16 @@
+import sys
+import os
+
+# Add the parent directory to the path so we can import the env
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+from lib.logs import write_row
 from env import RiderEnv, NpEncoder
 from courses import tenByOneKm, rollingHills, complicated
 from keras.optimizers.legacy import Adam
 from keras.layers import Dense, Dropout, Flatten
 from gym.wrappers import FlattenObservation
+import datetime
 import keras
 import numpy as np
 import random
@@ -103,22 +111,21 @@ class DeepQ:
         self.model.save(name)
 
 
-# ----------------------------------------------
+# -------------------------LOGS---------------------------------
 
-episode_data_file_path = "episode_logs.csv"
-with open(episode_data_file_path, "w") as f:
-    f.write("episode,total_reward,steps\n")
+course = "tenByOneKm"
+distance = 10_000
+
+log_path = f"../logs/"
+
+slug = f"DMC-{distance}m-{course}-{datetime.datetime.now().strftime('%d-%m-%Y_%H:%M')}"
+
+log_slug = f"{log_path}{slug}.csv"
+
+# -------------------------TRAINING-----------------------------
 
 
-env = RiderEnv(gradient=tenByOneKm, distance=1000)
-env = FlattenObservation(env)
-
-# Define the input and output dimensions
-input_dims = env.observation_space.shape[0]
-output_dims = env.action_space.n + 1
-
-
-def reward(state):
+def reward_fn(state):
     reward = -1
     """
     state = [
@@ -136,11 +143,17 @@ def reward(state):
     percent_complete = state[3]
     AWC = state[4]
 
-    if env.cur_position >= env.COURSE_DISTANCE:
-        reward += 100
+    if percent_complete >= 1:
+        reward = 1000
 
     return reward
 
+
+env = RiderEnv(gradient=tenByOneKm, distance=distance, reward=reward_fn)
+
+# Define the input and output dimensions
+input_dims = len(env.observation_space)
+output_dims = env.action_space.n + 1
 
 # Create the agent
 agent = DeepQ(input_dims, output_dims, batch_size=32)
@@ -169,17 +182,26 @@ for e in range(1, episodes + 1):
 
         total_reward += reward
 
-        if terminated:
-            data = {
-                "episode": e + 1,
-                "total_reward": total_reward,
-                "steps": cur_step,
-            }
-            # Append the data to a file in CSV format
-            with open(episode_data_file_path, "a") as f:
-                f.write(f"{data['episode']},{data['total_reward']},{data['steps']}\n")
+        if terminated or truncated:
+            agent.replay(total_reward)
 
-            agent.save("DQN.keras")
+            write_row(
+                log_slug,
+                {
+                    "episode": e,
+                    "epsilon": agent.epsilon,
+                    "reward": total_reward,
+                    "steps": env.step_count,
+                    "exit_reason": "terminated" if terminated else "truncated",
+                },
+            )
+
+            agent.save(slug)
+
+            print(f"---------Episode: {e+1}-----------")
+            print(f"Epsilon: {agent.epsilon}")
+            print(f"Total reward: {total_reward}")
+            print(f"Steps: {env.step_count}")
+            print(f"Exit reason: {'terminated' if terminated else 'truncated'}")
+
             break
-
-        cur_step += 1

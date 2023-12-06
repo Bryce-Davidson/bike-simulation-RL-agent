@@ -62,7 +62,6 @@ class RiderEnv:
             ]
         )
         self.action_space = Discrete(num_actions)
-
         self.reward = reward if reward else self.default_reward
 
         # Environment variables
@@ -77,7 +76,6 @@ class RiderEnv:
 
     @property
     def state(self) -> np.ndarray:
-        # We need to return a numpy array for the neural network to work
         return np.array(
             [
                 max_power(self.cur_AWC_j),  # power_max_w
