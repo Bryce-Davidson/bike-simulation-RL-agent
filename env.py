@@ -70,13 +70,11 @@ class RiderEnv:
         # We need to return a numpy array for the neural network to work
         return np.array(
             [
-                [
-                    max_power(self.cur_AWC_j),
-                    self.cur_velocity,
-                    self.course_fn(self.cur_position),
-                    self.cur_position / self.COURSE_DISTANCE,
-                    self.cur_AWC_j,
-                ]
+                max_power(self.cur_AWC_j),
+                self.cur_velocity,
+                self.course_fn(self.cur_position),
+                self.cur_position / self.COURSE_DISTANCE,
+                self.cur_AWC_j,
             ]
         )
 
@@ -180,6 +178,7 @@ class RiderEnv:
         return self.state(), reward, terminated, truncated, info
 
     def reset(self, start: int = None):
+        self.step_count = 0
         self.cur_AWC_j = RIDER_AWC_j
         self.cur_velocity = 0
         self.cur_position = start if start else self.START_DISTANCE
