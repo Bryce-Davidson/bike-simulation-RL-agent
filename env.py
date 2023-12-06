@@ -31,16 +31,24 @@ def max_power(AWC_j):
 class RiderEnv:
     def __init__(
         self,
+        reward: Callable[[int], float],
         gradient: Callable[[float], float],
         distance: int = 1000,
         num_actions: int = 10,
-        reward: Callable[[int], float] = None,
     ):
+        # Error handling
+        # ---------------------------
         if not callable(gradient):
             raise ValueError("Gradient must be a callable function")
 
+        if not callable(reward):
+            raise ValueError("Reward must be a callable function")
+
+        # Environment variables
+        # ---------------------------
         self.render_mode = None
 
+        self.step_count = 0
         self.course_fn = gradient
         self.START_DISTANCE = 0
         self.COURSE_DISTANCE = distance
@@ -62,11 +70,7 @@ class RiderEnv:
             ]
         )
         self.action_space = Discrete(num_actions)
-        self.reward = reward if reward else self.default_reward
-
-        # Environment variables
-        # ---------------------------
-        self.step_count = 0
+        self.reward = reward
 
         # Agent variables
         # ---------------------------
@@ -86,16 +90,18 @@ class RiderEnv:
             ]
         )
 
-    def default_reward(self: int) -> float:
-        reward = -1
-
-        if self.cur_position >= self.COURSE_DISTANCE:
-            reward += 100
-
-        if self.cur_velocity <= 0:
-            reward -= 100
-
-        return reward
+    def info(self, action, power_agent_w, reward):
+        return {
+            "power_max_w": max_power(self.cur_AWC_j),
+            "velocity": self.cur_velocity,
+            "gradient": self.course_fn(self.cur_position),
+            "percent_complete": self.cur_position / self.COURSE_DISTANCE,
+            "AWC": self.cur_AWC_j,
+            "position": self.cur_position,
+            "action": action,
+            "power_output": power_agent_w,
+            "reward": reward,
+        }
 
     def step(self, action: int):
         # Error handling
@@ -177,17 +183,7 @@ class RiderEnv:
         # State and info
         # -------------------------------------------------
 
-        info = {
-            "power_max_w": power_max_w,
-            "velocity": self.cur_velocity,
-            "gradient": slope_percent,
-            "percent_complete": self.cur_position / self.COURSE_DISTANCE,
-            "AWC": self.cur_AWC_j,
-            "position": self.cur_position,
-            "action": action,
-            "power_output": power_agent_w,
-            "reward": reward,
-        }
+        info = self.info(action, power_agent_w, reward)
 
         return self.state, reward, terminated, truncated, info
 
@@ -197,16 +193,6 @@ class RiderEnv:
         self.cur_velocity = 0
         self.cur_position = start if start else self.START_DISTANCE
 
-        info = {
-            "power_max_w": max_power(self.cur_AWC_j),
-            "velocity": self.cur_velocity,
-            "gradient": self.course_fn(self.cur_position),
-            "percent_complete": self.cur_position / self.COURSE_DISTANCE,
-            "AWC": self.cur_AWC_j,
-            "position": self.cur_position,
-            "action": None,
-            "power_output": None,
-            "reward": None,
-        }
+        info = self.info(action=None, power_agent_w=None, reward=None)
 
         return self.state, info
