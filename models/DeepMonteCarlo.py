@@ -23,7 +23,6 @@ class DeepMonteCarlo:
         self.input_dims = input_dims
         self.output_dims = output_dims
 
-        self.gamma = 0.9  # discount rate
         self.epsilon = 1  # initial exploration rate
         self.epsilon_min = 0.01  # minimum exploration rate
         self.epsilon_decay = 0.995  # exploration decay rate
@@ -31,7 +30,7 @@ class DeepMonteCarlo:
         # An array of state, action pairs
         self.memories = []
 
-        self.learning_rate = 0.001
+        self.learning_rate = 0.01
         self.model = self.build_model()
 
     def build_model(self):
