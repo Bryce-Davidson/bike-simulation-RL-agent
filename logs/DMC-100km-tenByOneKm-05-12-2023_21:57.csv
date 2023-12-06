@@ -1,0 +1,10 @@
+episode,total_reward,steps,exit_reason
+0,-35,35,terminated
+1,-136,36,terminated
+2,-339,39,terminated
+3,-33,33,terminated
+4,69,31,terminated
+5,-134,34,terminated
+6,-237,37,terminated
+7,-232,32,terminated
+8,68,32,terminated

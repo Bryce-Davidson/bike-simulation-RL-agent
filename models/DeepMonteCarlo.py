@@ -87,14 +87,16 @@ class DeepMonteCarlo:
         return int(predicted_action)
 
     def save(self, name):
-        self.model.save(overwrite=True, filepath=f"./weights/{name}")
+        self.model.save(filepath=f"./weights/{name}.keras")
 
 
 # -------------------------LOGGING-----------------------------
 
 course = "tenByOneKm"
 distance = 100
-log_slug = f"DMC-{distance}km-{course}-{datetime.datetime.now().strftime('%d-%m-%Y_%H:%M')}.csv"
+log_slug = (
+    f"DMC-{distance}km-{course}-{datetime.datetime.now().strftime('%d-%m-%Y_%H:%M')}"
+)
 
 # -------------------------TRAINING-----------------------------
 

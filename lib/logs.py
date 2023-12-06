@@ -6,7 +6,7 @@ def write_episode_data_to_csv(name, episode_reward, episode_number, steps, exit_
     fieldnames = ["episode", "total_reward", "steps", "exit_reason"]
     episode_data = [episode_number, episode_reward, steps, exit_reason]
 
-    file_path = f"../logs/{name}"
+    file_path = f"../logs/{name}.csv"
 
     with open(file_path, "a+") as f:
         writer = csv.writer(f)
