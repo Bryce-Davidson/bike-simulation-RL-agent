@@ -1,10 +1,11 @@
 import sys
 import os
 
+# Add the parent directory to the path so we can import the env
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 import datetime
-from lib.logs import write_episode_data_to_csv
+from lib.logs import write_row
 from env import RiderEnv
 from courses import tenByOneKm, rollingHills, complicated
 from keras.optimizers.legacy import Adam
@@ -22,7 +23,7 @@ class DeepMonteCarlo:
         self.input_dims = input_dims
         self.output_dims = output_dims
 
-        self.gamma = 0.5  # discountL rate
+        self.gamma = 0.9  # discount rate
         self.epsilon = 1  # initial exploration rate
         self.epsilon_min = 0.01  # minimum exploration rate
         self.epsilon_decay = 0.995  # exploration decay rate
@@ -69,8 +70,7 @@ class DeepMonteCarlo:
             verbose=1,
         )
 
-        if self.epsilon > self.epsilon_min:
-            self.epsilon *= self.epsilon_decay
+        self.epsilon = max(self.epsilon_min, self.epsilon * self.epsilon_decay)
 
         self.forget()
 
@@ -90,13 +90,16 @@ class DeepMonteCarlo:
         self.model.save(filepath=f"./weights/{name}.keras")
 
 
-# -------------------------LOGGING-----------------------------
+# -------------------------LOGS---------------------------------
 
 course = "tenByOneKm"
 distance = 100
-log_slug = (
-    f"DMC-{distance}km-{course}-{datetime.datetime.now().strftime('%d-%m-%Y_%H:%M')}"
-)
+
+log_path = f"../logs/"
+
+slug = f"DMC-{distance}m-{course}-{datetime.datetime.now().strftime('%d-%m-%Y_%H:%M')}"
+
+log_slug = f"{log_path}{slug}.csv"
 
 # -------------------------TRAINING-----------------------------
 
@@ -127,15 +130,18 @@ for e in range(episodes):
         if terminated or truncated:
             agent.replay(total_reward)
 
-            write_episode_data_to_csv(
+            write_row(
                 log_slug,
-                total_reward,
-                episode_number=e,
-                steps=env.step_count,
-                exit_reason="terminated" if terminated else "truncated",
+                {
+                    "episode": e,
+                    "epsilon": agent.epsilon,
+                    "reward": total_reward,
+                    "steps": env.step_count,
+                    "exit_reason": "terminated" if terminated else "truncated",
+                },
             )
 
-            agent.save(log_slug)
+            agent.save(slug)
 
             print(f"---------Episode: {e+1}-----------")
             print(f"Epsilon: {agent.epsilon}")

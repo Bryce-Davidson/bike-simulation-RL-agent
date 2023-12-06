@@ -10,7 +10,7 @@ from env import RiderEnv
 from lib.JsonEncoders import NpEncoder
 
 WEIGHTS_FOLDER_PATH = "./models/weights/"
-MODEL_WEIGHTS_FILE_NAME = "DMC-100km-tenByOneKm-06-12-2023_00:15.keras"
+MODEL_WEIGHTS_FILE_NAME = "DMC-100km-tenByOneKm-06-12-2023_00:22.keras"
 
 # load the model from the .keras file
 model = keras.models.load_model(f"{WEIGHTS_FOLDER_PATH}/{MODEL_WEIGHTS_FILE_NAME}")
