@@ -65,13 +65,23 @@ class RiderEnv:
         self.cur_velocity = 0
         self.cur_position = self.START_DISTANCE
 
+    @property
+    def state(self):
+        return [
+            max_power(self.cur_AWC_j),
+            self.cur_velocity,
+            self.course_fn(self.cur_position),
+            self.cur_position / self.COURSE_DISTANCE,
+            self.cur_AWC_j,
+        ]
+
     def step(self, action: int):
         # Error handling
         # -------------------------------------------------
         if self.action_space.n < action < 0:
             raise ValueError("Invalid action")
         if type(action) != int:
-            raise TypeError("Action must be an integer")
+            raise TypeError(f"Expected int, got {type(action)}")
 
         # Step count
         self.step_count += 1
@@ -150,14 +160,6 @@ class RiderEnv:
         # State and info
         # -------------------------------------------------
 
-        state = [
-            power_max_w,
-            self.cur_velocity,
-            slope_percent,
-            self.cur_position / self.COURSE_DISTANCE,
-            self.cur_AWC_j,
-        ]
-
         info = {
             "power_max_w": power_max_w,
             "velocity": self.cur_velocity,
@@ -170,20 +172,12 @@ class RiderEnv:
             "reward": reward,
         }
 
-        return state, reward, terminated, truncated, info
+        return self.state, reward, terminated, truncated, info
 
     def reset(self, start: int = None):
         self.cur_AWC_j = RIDER_AWC_j
         self.cur_velocity = 0
         self.cur_position = start if start else self.START_DISTANCE
-
-        state = [
-            max_power(self.cur_AWC_j),
-            self.cur_velocity,
-            self.course_fn(self.cur_position),
-            self.cur_position / self.COURSE_DISTANCE,
-            self.cur_AWC_j,
-        ]
 
         info = {
             "power_max_w": max_power(self.cur_AWC_j),
@@ -197,4 +191,4 @@ class RiderEnv:
             "reward": None,
         }
 
-        return state, info
+        return self.state, info
