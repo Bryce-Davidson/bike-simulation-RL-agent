@@ -90,7 +90,7 @@ class RiderEnv:
             ]
         )
 
-    def info(self, **kwargs):
+    def info(self, meta):
         state = self.state
         return {
             "power_max_w": state[0],
@@ -98,8 +98,7 @@ class RiderEnv:
             "gradient": state[2],
             "percent_complete": state[3],
             "AWC": state[4],
-            "position": self.cur_position,
-            **kwargs,
+            **meta,
         }
 
     def step(self, action: int):
@@ -184,6 +183,7 @@ class RiderEnv:
 
         info = self.info(
             {
+                "position": self.cur_position,
                 "action": action,
                 "power_agent_w": power_agent_w,
                 "reward": reward,
