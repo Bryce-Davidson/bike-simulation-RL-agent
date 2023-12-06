@@ -1,4 +1,4 @@
-from env import BikersEnv, NpEncoder
+from env import RiderEnv, NpEncoder
 from courses import tenByOneKm, rollingHills, complicated
 from keras.optimizers.legacy import Adam
 from keras.layers import Dense, Dropout, Flatten
@@ -107,7 +107,7 @@ with open(episode_data_file_path, 'w') as f:
     f.write("episode,total_reward,steps\n")
 
 
-env = BikersEnv(course_fn=tenByOneKm, COURSE_DISTANCE=4000)
+env = RiderEnv(gradient=tenByOneKm, distance=4000)
 env = FlattenObservation(env)
 
 # Define the input and output dimensions
