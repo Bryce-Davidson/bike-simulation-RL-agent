@@ -14,7 +14,7 @@ DATA_DIR = "./data"
 # --------------------------------------------------------------
 
 
-MODEL_SLUG = "DMC-1200m-shortTest-07-12-2023_00:06-WINNER"
+MODEL_SLUG = "TDQN-1200m-shortTest-07-12-2023_01:30"
 course_name = "shortTest"
 distance = 1200
 

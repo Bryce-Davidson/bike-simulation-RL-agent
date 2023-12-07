@@ -27,7 +27,7 @@ class DeepQ:
         self.gamma = 0.9  # discount rate
         self.epsilon = 1  # initial exploration rate
         self.epsilon_min = 0.01  # minimum exploration rate
-        self.epsilon_decay = 0.995  # exploration decay rate
+        self.epsilon_decay = 0.999  # exploration decay rate
 
         self.memory_size = 1000
         self.memories = []
@@ -44,8 +44,7 @@ class DeepQ:
         # Delete the last layer
         self.model.pop()
         # Add a transfer layer
-        self.model.add(Dense(200, activation="relu", name="transfer_dense_1"))
-        self.model.add(Dense(200, activation="relu", name="transfer_dense_2"))
+        self.model.add(Dense(100, activation="relu", name="transfer_dense_1"))
         # Add a new layer with the correct number of outputs
         self.model.add(
             Dense(self.output_dims, activation="linear", name="transfer_out")
@@ -61,14 +60,11 @@ class DeepQ:
     def remember(self, state, action, reward, next_state, terminated):
         self.memories.append((state, action, reward, next_state, terminated))
 
-        if len(self.memories) > self.batch_size:
+        if len(self.memories) >= self.batch_size:
             self.replay()
-            self.memories.pop(0)
+            self.forget()
 
     def replay(self):
-        if len(self.memories) < self.batch_size:
-            return
-
         # Randomly sample a batch of memories
         batch = random.sample(self.memories, self.batch_size)
 
@@ -116,7 +112,7 @@ class DeepQ:
 course = "shortTest"
 distance = 1200
 
-log_path = f"./logs"
+log_path = f"../logs"
 
 slug = f"TDQN-{distance}m-{course}-{datetime.datetime.now().strftime('%d-%m-%Y_%H:%M')}"
 
@@ -141,12 +137,12 @@ def reward_fn(state):
     reward = -1
 
     if percent_complete >= 0.95:
-        reward += 10000
+        reward += -AWC * 0.01
 
     return reward
 
 
-env = RiderEnv(gradient=tenByOneKm, distance=distance, reward=reward_fn)
+env = RiderEnv(gradient=shortTest, distance=distance, reward=reward_fn)
 
 # Define the input and output dimensions
 input_dims = len(env.observation_space)
