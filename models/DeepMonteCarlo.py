@@ -31,7 +31,7 @@ class DeepMonteCarlo:
         self.memory_limit = 1000
         self.memories = []
 
-        self.learning_rate = 0.001
+        self.learning_rate = 0.01
         self.model = self.build_model()
 
     def build_model(self):
@@ -45,7 +45,11 @@ class DeepMonteCarlo:
 
         model.add(Dense(self.output_dims, activation="linear"))
 
-        model.compile(loss="mse", optimizer=Adam(learning_rate=self.learning_rate))
+        lr_schedule = keras.optimizers.schedules.ExponentialDecay(
+            initial_learning_rate=self.learning_rate, decay_steps=100, decay_rate=0.96
+        )
+
+        model.compile(loss="mse", optimizer=Adam(learning_rate=lr_schedule))
 
         return model
 
@@ -75,6 +79,9 @@ class DeepMonteCarlo:
         self.epsilon = max(self.epsilon_min, self.epsilon * self.epsilon_decay)
 
         self.forget()
+
+        # 3 return the current learning rate of the network
+        return self.model.optimizer.lr
 
     def act(self, state):
         if np.random.rand() <= self.epsilon:
@@ -106,8 +113,8 @@ def reward_fn(state):
 
     reward = -1
 
-    if percent_complete >= 1:
-        reward += -AWC
+    if percent_complete >= 0.95:
+        reward += -AWC * 0.01
 
     return reward
 
@@ -122,10 +129,8 @@ agent = DeepMonteCarlo(input_dims, output_dims)
 
 episodes = 100000
 for e in range(episodes):
-    if e >= 10000 and e < 10250:
+    if e >= 15000:
         agent.epsilon = 0
-    elif e >= 10250 and e < 10500:
-        agent.epsilon = 0.99
 
     cur_state, cur_info = env.reset()
 
@@ -142,13 +147,14 @@ for e in range(episodes):
         total_reward += reward
 
         if terminated or truncated:
-            agent.replay(total_reward)
+            lr = agent.replay(total_reward)
             agent.save(slug)
 
             write_row(
                 log_slug,
                 {
                     "episode": e,
+                    "learning_rate": lr,
                     "epsilon": agent.epsilon,
                     "reward": total_reward,
                     "steps": env.step_count,
@@ -157,5 +163,10 @@ for e in range(episodes):
             )
 
             print(f"---------Episode: {e}-----------")
+            print(f"Total reward: {total_reward}")
+            print(f"Learning rate: {lr}")
+            print(f"Epsilon: {agent.epsilon}")
+            print(f"Steps: {env.step_count}")
+            print(f"Exit reason: {'terminated' if terminated else 'truncated'}")
 
             break
