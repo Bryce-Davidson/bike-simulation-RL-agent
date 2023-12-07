@@ -32,7 +32,7 @@ class DeepQ:
         self.memory_size = 1000
         self.memories = []
 
-        self.learning_rate = 0.01
+        self.learning_rate = 0.001
         self.model = self.build_model()
 
     def build_model(self):
@@ -54,7 +54,15 @@ class DeepQ:
 
         model.add(Dense(self.output_dims, activation="linear"))
 
-        model.compile(loss="mse", optimizer=Adam(learning_rate=self.learning_rate))
+        # add in a learning rate scheduler
+
+        lr_schedule = keras.optimizers.schedules.ExponentialDecay(
+            initial_learning_rate=self.learning_rate,
+            decay_steps=10000,
+            decay_rate=0.9,
+        )
+
+        model.compile(loss="mse", optimizer=Adam(learning_rate=lr_schedule))
 
         return model
 
@@ -131,7 +139,7 @@ def reward_fn(state):
 course = "testCourse"
 distance = 400
 
-log_path = f"./logs"
+log_path = f"../logs"
 
 slug = f"DQN-{distance}m-{course}-{datetime.datetime.now().strftime('%d-%m-%Y_%H:%M')}"
 
@@ -156,7 +164,8 @@ for e in range(0, episodes):
 
     total_reward = 0
     while True:
-        print(f"---------Episode: {e+1}-----------")
+        print(f"---------Episode: {e+1}, Step: {env.step_count}-----------")
+        print(f"Epsilon: {agent.epsilon}")
         action = agent.act(cur_state)
 
         next_state, reward, terminated, truncated, next_info = env.step(action)
@@ -169,7 +178,6 @@ for e in range(0, episodes):
             json.dumps(
                 {
                     **next_info,
-                    "step": env.step_count,
                     "total_reward": total_reward,
                 },
                 indent=4,
