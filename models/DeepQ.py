@@ -80,24 +80,20 @@ class DeepQ:
         # Randomly sample a batch of memories
         batch = random.sample(self.memories, self.batch_size)
 
-        states = []
-        targets = []
+        states, actions, rewards, next_states, terminals = zip(*batch)
 
-        for state, action, reward, next_state, terminated in batch:
-            states.append(state)
+        states = np.array(states)
 
-            target = reward
-            if not terminated:
-                target = reward + self.gamma * np.amax(
-                    self.model.predict(np.array([next_state]), verbose=0)[0]
-                )
+        targets = np.zeros((self.batch_size, self.output_dims))
 
-            current = self.model.predict(np.array([state]), verbose=0)
-            current[0][action] = target
+        currents = self.model.predict(states, verbose=0)
+        nexts = self.model.predict(np.array(next_states), verbose=0)
 
-            targets.append(current[0])
+        for i, action in enumerate(actions):
+            targets[i] = currents[i]
+            targets[i][action] = rewards[i] + self.gamma * np.amax(nexts[i])
 
-        self.model.fit(np.array(states), np.array(targets), epochs=1, verbose=1)
+        self.model.fit(states, targets, epochs=1, verbose=1)
 
         self.epsilon = max(self.epsilon_min, self.epsilon * self.epsilon_decay)
 
@@ -164,8 +160,7 @@ for e in range(0, episodes):
 
     total_reward = 0
     while True:
-        print(f"---------Episode: {e+1}, Step: {env.step_count}-----------")
-        print(f"Epsilon: {agent.epsilon}")
+        print(f"---------Episode: {e+1}/{episodes}, Step: {env.step_count}-----------")
         action = agent.act(cur_state)
 
         next_state, reward, terminated, truncated, next_info = env.step(action)
@@ -179,6 +174,7 @@ for e in range(0, episodes):
                 {
                     **next_info,
                     "total_reward": total_reward,
+                    "epsilon": agent.epsilon,
                 },
                 indent=4,
                 cls=NpEncoder,
