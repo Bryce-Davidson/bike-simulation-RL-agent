@@ -91,7 +91,10 @@ class DeepQ:
 
         for i, action in enumerate(actions):
             targets[i] = currents[i]
-            targets[i][action] = rewards[i] + self.gamma * np.amax(nexts[i])
+            targets[i][action] = rewards[i]
+
+            if not terminals[i]:
+                targets[i][action] += self.gamma * np.amax(nexts[i])
 
         self.model.fit(states, targets, epochs=1, verbose=1)
 
