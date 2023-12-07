@@ -89,8 +89,8 @@ class DeepMonteCarlo:
 
         return int(predicted_action)
 
-    def save(self, name):
-        self.model.save(filepath=f"./weights/{name}.keras")
+    def save(self, slug):
+        self.model.save(filepath=f"./weights/{slug}.keras")
 
 
 # -------------------------LOGS---------------------------------
@@ -130,19 +130,21 @@ for e in range(episodes):
 
         total_reward += reward
 
+        write_row(
+            log_slug,
+            {
+                "episode": e,
+                "epsilon": agent.epsilon,
+                "action": action,
+                "total_reward": total_reward,
+                "step": env.step_count,
+                "exit_reason": None if not terminated else "terminated",
+                **cur_info,
+            },
+        )
+
         if terminated or truncated:
             agent.replay(total_reward)
-
-            write_row(
-                log_slug,
-                {
-                    "episode": e,
-                    "epsilon": agent.epsilon,
-                    "reward": total_reward,
-                    "steps": env.step_count,
-                    "exit_reason": "terminated" if terminated else "truncated",
-                },
-            )
 
             agent.save(slug)
 
