@@ -7,7 +7,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 from lib.logs import write_row
 from lib.JsonEncoders import NpEncoder
 from env import RiderEnv
-from courses import shortTest
+from courses import testCourse
 from keras.optimizers.legacy import Adam
 from keras.layers import Dense, Dropout, Flatten
 from gym.wrappers import FlattenObservation
@@ -46,6 +46,12 @@ class DeepQ:
 
         model.add(Dense(100, activation="relu"))
 
+        model.add(Dense(100, activation="relu"))
+
+        model.add(Dense(50, activation="relu"))
+
+        model.add(Dense(50, activation="relu"))
+
         model.add(Dense(self.output_dims, activation="linear"))
 
         model.compile(loss="mse", optimizer=Adam(learning_rate=self.learning_rate))
@@ -63,9 +69,6 @@ class DeepQ:
             self.memories.pop(0)
 
     def replay(self):
-        if len(self.memories) < self.batch_size:
-            return
-
         # Randomly sample a batch of memories
         batch = random.sample(self.memories, self.batch_size)
 
@@ -92,13 +95,11 @@ class DeepQ:
 
     def act(self, state):
         if np.random.rand() <= self.epsilon:
-            random_action = random.randrange(self.output_dims)
-            return random_action
+            return random.randrange(self.output_dims)
 
         state = np.array([state])
         act_values = self.model.predict(state, verbose=0)
-        predicted_action = np.argmax(act_values[0])
-        return predicted_action
+        return np.argmax(act_values[0])
 
     def save(self, slug):
         self.model.save(filepath=f"./weights/{slug}.keras")
@@ -119,12 +120,6 @@ def reward_fn(state):
 
     reward = -1
 
-    if velocity < 0:
-        reward += -100
-
-    if percent_complete >= 1 and AWC > 0:
-        reward += -AWC
-
     if percent_complete >= 1:
         reward += 100000
 
@@ -133,8 +128,8 @@ def reward_fn(state):
 
 # -------------------------LOGS---------------------------------
 
-course = "shortTest"
-distance = 1200
+course = "testCourse"
+distance = 400
 
 log_path = f"./logs"
 
@@ -145,7 +140,7 @@ log_slug = f"{log_path}/{slug}.csv"
 # -------------------------TRAINING-----------------------------
 
 
-env = RiderEnv(gradient=shortTest, distance=distance, reward=reward_fn)
+env = RiderEnv(gradient=testCourse, distance=distance, reward=reward_fn)
 
 # Define the input and output dimensions
 input_dims = len(env.observation_space)
@@ -166,6 +161,9 @@ for e in range(0, episodes):
         next_state, reward, terminated, truncated, next_info = env.step(action)
 
         agent.remember(cur_state, action, reward, next_state, terminated)
+
+        if len(agent.memories) >= agent.batch_size:
+            print(json.dumps(next_info, indent=4, cls=NpEncoder))
 
         cur_state, cur_info = next_state, next_info
 
