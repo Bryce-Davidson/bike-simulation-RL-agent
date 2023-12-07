@@ -23,10 +23,9 @@ class DeepMonteCarlo:
         self.input_dims = input_dims
         self.output_dims = output_dims
 
-        self.gamma = 0.5  # discount rate
         self.epsilon = 1  # initial exploration rate
         self.epsilon_min = 0.01  # minimum exploration rate
-        self.epsilon_decay = 0.9999  # exploration decay rate
+        self.epsilon_decay = 0.999999  # exploration decay rate
 
         # An array of state, action pairs
         self.states = []
@@ -119,11 +118,7 @@ def reward_fn(state):
     ]
     """
 
-    power_max_w = state[0]
-    velocity = state[1]
-    gradient = state[2]
-    percent_complete = state[3]
-    AWC = state[4]
+    power_max_w, velocity, gradient, percent_complete, AWC = state
 
     reward = -1
 
@@ -131,7 +126,7 @@ def reward_fn(state):
         reward = -100
 
     if percent_complete >= 1:
-        reward = 1000
+        reward = 100
 
     return reward
 

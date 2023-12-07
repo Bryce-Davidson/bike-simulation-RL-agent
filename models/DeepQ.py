@@ -24,10 +24,10 @@ class DeepQ:
         self.output_dims = output_dims
         self.batch_size = batch_size
 
-        self.gamma = 0.1  # discount rate
+        self.gamma = 0.9  # discount rate
         self.epsilon = 1  # initial exploration rate
         self.epsilon_min = 0.01  # minimum exploration rate
-        self.epsilon_decay = 0.99995  # exploration decay rate
+        self.epsilon_decay = 0.99999  # exploration decay rate
 
         self.memory_size = 1000
         self.memories = []
@@ -131,11 +131,7 @@ def reward_fn(state):
     ]
     """
 
-    power_max_w = state[0]
-    velocity = state[1]
-    gradient = state[2]
-    percent_complete = state[3]
-    AWC = state[4]
+    power_max_w, velocity, gradient, percent_complete, AWC = state
 
     reward = -1
 
@@ -155,7 +151,7 @@ input_dims = len(env.observation_space)
 output_dims = env.action_space.n + 1
 
 # Create the agent
-agent = DeepQ(input_dims, output_dims, batch_size=32)
+agent = DeepQ(input_dims, output_dims, batch_size=128)
 
 # Define the number of episodes
 episodes = 600
