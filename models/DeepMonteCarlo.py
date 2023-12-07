@@ -7,7 +7,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 import datetime
 from lib.logs import write_row
 from env import RiderEnv
-from courses import tenByOneKm, rollingHills, complicated
+from courses import shortTest
 from keras.optimizers.legacy import Adam
 from keras.layers import Dense, Dropout
 import keras
@@ -23,16 +23,16 @@ class DeepMonteCarlo:
         self.input_dims = input_dims
         self.output_dims = output_dims
 
-        self.gamma = 0.1  # discount rate
+        self.gamma = 0.5  # discount rate
         self.epsilon = 1  # initial exploration rate
         self.epsilon_min = 0.01  # minimum exploration rate
-        self.epsilon_decay = 0.995  # exploration decay rate
+        self.epsilon_decay = 0.9999  # exploration decay rate
 
         # An array of state, action pairs
         self.states = []
         self.actions = []
 
-        self.learning_rate = 0.01
+        self.learning_rate = 0.001
         self.model = self.build_model()
 
     def build_model(self):
@@ -96,8 +96,8 @@ class DeepMonteCarlo:
 
 # -------------------------LOGS---------------------------------
 
-course = "tenByOneKm"
-distance = 10_000
+course = "shortTest"
+distance = 1200
 
 log_path = f"../logs"
 
@@ -107,7 +107,36 @@ log_slug = f"{log_path}/{slug}.csv"
 
 # -------------------------TRAINING-----------------------------
 
-env = RiderEnv(gradient=tenByOneKm, distance=distance)
+
+def reward_fn(state):
+    """
+    state = [
+        power_max_w,
+        velocity,
+        gradient,
+        percent_complete,
+        AWC
+    ]
+    """
+
+    power_max_w = state[0]
+    velocity = state[1]
+    gradient = state[2]
+    percent_complete = state[3]
+    AWC = state[4]
+
+    reward = -1
+
+    if velocity < 0:
+        reward = -100
+
+    if percent_complete >= 1:
+        reward = 1000
+
+    return reward
+
+
+env = RiderEnv(gradient=shortTest, distance=distance, reward=reward_fn)
 
 input_dims = len(env.observation_space)
 output_dims = env.action_space.n + 1

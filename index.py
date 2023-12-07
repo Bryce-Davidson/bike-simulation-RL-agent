@@ -10,18 +10,17 @@ from lib.JsonEncoders import NpEncoder
 
 WEIGHTS_FOLDER_PATH = "./models/weights"
 DATA_DIR = "./data"
-MODEL_SLUG = "DMC-100m-tenByOneKm-06-12-2023_13:49"
 
 # --------------------------------------------------------------
 
+
+MODEL_SLUG = "DMC-100m-tenByOneKm-06-12-2023_13:49"
 course_name = "shortTest"
 distance = 1200
-FORCED_ACTION = 10
+
+model = keras.models.load_model(f"{WEIGHTS_FOLDER_PATH}/{MODEL_SLUG}.keras")
 
 # --------------------------------------------------------------
-
-if not FORCED_ACTION:
-    model = keras.models.load_model(f"{WEIGHTS_FOLDER_PATH}/{MODEL_SLUG}.keras")
 
 if __name__ == "__main__":
     env = RiderEnv(gradient=shortTest, distance=distance, reward=lambda x: 0)
@@ -33,10 +32,7 @@ if __name__ == "__main__":
     while env.cur_position < env.COURSE_DISTANCE:
         state = np.array([state])
 
-        if FORCED_ACTION:
-            action = FORCED_ACTION
-        else:
-            action = np.argmax(model.predict(state, verbose=0)[0])
+        action = np.argmax(model.predict(state, verbose=0)[0])
 
         state, reward, terminated, truncated, info = env.step(action)
 
@@ -55,9 +51,4 @@ if __name__ == "__main__":
     # -------------------------DATA---------------------------------
 
     df = pd.DataFrame(data)
-    if FORCED_ACTION:
-        df.to_csv(
-            f"{DATA_DIR}/{course_name}-{distance}-forced_action_{FORCED_ACTION}.csv"
-        )
-    else:
-        df.to_csv(f"{DATA_DIR}/{course_name}-{distance}-{MODEL_SLUG}.csv")
+    df.to_csv(f"{DATA_DIR}/{course_name}-{distance}m-{MODEL_SLUG}.csv")

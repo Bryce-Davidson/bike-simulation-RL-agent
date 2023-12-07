@@ -5,8 +5,9 @@ import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from lib.logs import write_row
-from env import RiderEnv, NpEncoder
-from courses import tenByOneKm, rollingHills, complicated
+from lib.JsonEncoders import NpEncoder
+from env import RiderEnv
+from courses import tenByOneKm, rollingHills, shortTest
 from keras.optimizers.legacy import Adam
 from keras.layers import Dense, Dropout, Flatten
 from gym.wrappers import FlattenObservation
@@ -26,7 +27,7 @@ class DeepQ:
         self.gamma = 0.1  # discount rate
         self.epsilon = 1  # initial exploration rate
         self.epsilon_min = 0.01  # minimum exploration rate
-        self.epsilon_decay = 0.9995  # exploration decay rate
+        self.epsilon_decay = 0.99995  # exploration decay rate
 
         self.memory_size = 1000
         self.memories = []
@@ -38,6 +39,8 @@ class DeepQ:
         model = keras.models.Sequential()
 
         model.add(Dense(64, input_dim=self.input_dims, activation="relu"))
+
+        model.add(Dense(64, activation="relu"))
 
         model.add(Dense(64, activation="relu"))
 
@@ -53,11 +56,9 @@ class DeepQ:
     def remember(self, state, action, reward, next_state, terminated):
         self.memories.append((state, action, reward, next_state, terminated))
 
-        if len(self.memories) > self.memory_size:
-            self.memories.pop(0)
-
         if len(self.memories) > self.batch_size:
             self.replay()
+            self.memories.pop(0)
 
     def replay(self):
         if len(self.memories) < self.batch_size:
@@ -107,8 +108,8 @@ class DeepQ:
 
 # -------------------------LOGS---------------------------------
 
-course = "tenByOneKm"
-distance = 10_000
+course = "shortTest"
+distance = 1200
 
 log_path = f"../logs"
 
@@ -138,6 +139,9 @@ def reward_fn(state):
 
     reward = -1
 
+    if velocity < 0:
+        reward = -100
+
     if percent_complete >= 1:
         reward = 1000
 
@@ -157,10 +161,9 @@ agent = DeepQ(input_dims, output_dims, batch_size=32)
 episodes = 600
 for e in range(1, episodes + 1):
     # Reset the environment and get the initial state
-    cur_state, cur_info = env.reset(START_DISTANCE=env.COURSE_DISTANCE - e * 50)
+    cur_state, cur_info = env.reset()
 
     total_reward = 0
-    cur_step = 0
     while True:
         action = agent.act(cur_state)
 
@@ -168,7 +171,7 @@ for e in range(1, episodes + 1):
 
         agent.remember(cur_state, action, reward, next_state, terminated)
 
-        print(f"---------Episode: {e+1}, Step: {cur_step}---------")
+        print(f"---------Episode: {e+1}, Step: {env.step_count}---------")
         print(f"Action: {action}")
         print(f"Epsilon: {agent.epsilon}")
         print(json.dumps(next_info, indent=4, cls=NpEncoder))
