@@ -24,12 +24,12 @@ class DeepMonteCarlo:
         self.output_dims = output_dims
 
         self.epsilon = 1  # initial exploration rate
-        self.epsilon_min = 0.01  # minimum exploration rate
-        self.epsilon_decay = 0.999999  # exploration decay rate
+        self.epsilon_min = 0.001  # minimum exploration rate
+        self.epsilon_decay = 1  # exploration decay rate
 
         # An array of state, action pairs
-        self.states = []
-        self.actions = []
+        self.memory_limit = 1000
+        self.memories = []
 
         self.learning_rate = 0.001
         self.model = self.build_model()
@@ -50,23 +50,23 @@ class DeepMonteCarlo:
         return model
 
     def forget(self):
-        self.states = []
-        self.actions = []
+        self.memories = []
 
     def remember(self, state, action):
-        self.states.append(state)
-        self.actions.append(action)
+        self.memories.append((state, action))
 
     def replay(self, total_reward: int):
-        training_states = np.array(self.states)
-        currents = self.model.predict(training_states, verbose=0)
+        states, actions = zip(*self.memories)
 
-        for i in range(len(self.states)):
-            action = self.actions[i]
+        states = np.array(states)
+        currents = self.model.predict(states, verbose=0)
+
+        for i, action in enumerate(actions):
             currents[i][action] = total_reward
 
+        # Update the model
         self.model.fit(
-            training_states,
+            states,
             currents,
             epochs=1,
             verbose=1,
@@ -76,23 +76,12 @@ class DeepMonteCarlo:
 
         self.forget()
 
-        # return the loss for logging
-        return self.model.evaluate(training_states, currents, verbose=0)
-
     def act(self, state):
         if np.random.rand() <= self.epsilon:
-            random_action = random.randrange(self.output_dims)
+            return np.random.randint(self.output_dims)
 
-            # print(f"Random action: {random_action}")
-            return random_action
-
-        state = np.array([state])
-        act_values = self.model.predict(state, verbose=0)
-        predicted_action = np.argmax(act_values[0])
-
-        # print(f"Predicted action: {predicted_action}")
-
-        return int(predicted_action)
+        state = np.expand_dims(state, axis=0)
+        return int(np.argmax(self.model.predict(state, verbose=0)[0]))
 
     def save(self, slug):
         self.model.save(filepath=f"./weights/{slug}.keras")
@@ -113,19 +102,12 @@ log_slug = f"{log_path}/{slug}.csv"
 
 
 def reward_fn(state):
-    """
-    state = [
-        power_max_w,
-        velocity,
-        gradient,
-        percent_complete,
-        AWC
-    ]
-    """
-
     power_max_w, velocity, gradient, percent_complete, AWC = state
 
     reward = -1
+
+    if percent_complete >= 1:
+        reward += -AWC
 
     return reward
 
@@ -140,6 +122,11 @@ agent = DeepMonteCarlo(input_dims, output_dims)
 
 episodes = 100000
 for e in range(episodes):
+    if e >= 10000 and e < 10250:
+        agent.epsilon = 0
+    elif e >= 10250 and e < 10500:
+        agent.epsilon = 0.99
+
     cur_state, cur_info = env.reset()
 
     total_reward = 0
@@ -155,28 +142,20 @@ for e in range(episodes):
         total_reward += reward
 
         if terminated or truncated:
-            if e >= 10000:
-                agent.epsilon_decay = 0.1
-
-            loss = agent.replay(total_reward)
+            agent.replay(total_reward)
             agent.save(slug)
 
             write_row(
                 log_slug,
                 {
                     "episode": e,
-                    "loss": loss,
                     "epsilon": agent.epsilon,
                     "reward": total_reward,
                     "steps": env.step_count,
-                    "exit_reason": None if not terminated else "terminated",
+                    "exit_reason": "terminated" if terminated else "truncated",
                 },
             )
 
-            print(f"---------Episode: {e+1}-----------")
-            print(f"Epsilon: {agent.epsilon}")
-            print(f"Total reward: {total_reward}")
-            print(f"Steps: {env.step_count}")
-            print(f"Exit reason: {'terminated' if terminated else 'truncated'}")
+            print(f"---------Episode: {e}-----------")
 
             break
