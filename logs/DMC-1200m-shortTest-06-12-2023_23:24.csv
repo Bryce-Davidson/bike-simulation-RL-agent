@@ -76,3 +76,7 @@ episode,learning_rate,epsilon,reward,steps,exit_reason
 74,<keras.src.optimizers.schedules.learning_rate_schedule.ExponentialDecay object at 0x140437df0>,1,-385.40377311397225,182,terminated
 75,<keras.src.optimizers.schedules.learning_rate_schedule.ExponentialDecay object at 0x140437df0>,1,-438.58157112954206,192,terminated
 76,<keras.src.optimizers.schedules.learning_rate_schedule.ExponentialDecay object at 0x140437df0>,1,-426.2659141980275,190,terminated
+77,<keras.src.optimizers.schedules.learning_rate_schedule.ExponentialDecay object at 0x140437df0>,1,-465.1752887829469,194,terminated
+78,<keras.src.optimizers.schedules.learning_rate_schedule.ExponentialDecay object at 0x140437df0>,1,-420.0408573360843,189,terminated
+79,<keras.src.optimizers.schedules.learning_rate_schedule.ExponentialDecay object at 0x140437df0>,1,-376.03382025958535,188,terminated
+80,<keras.src.optimizers.schedules.learning_rate_schedule.ExponentialDecay object at 0x140437df0>,1,-399.48702080816383,187,terminated
