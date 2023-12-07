@@ -11,14 +11,13 @@ from lib.JsonEncoders import NpEncoder
 WEIGHTS_FOLDER_PATH = "./models/weights"
 MODEL_SLUG = "DMC-100m-tenByOneKm-06-12-2023_13:49"
 
-# load the model from the .keras file
 model = keras.models.load_model(f"{WEIGHTS_FOLDER_PATH}/{MODEL_SLUG}.keras")
 
-# -------------------------FORCE_ACTION---------------------------------
+# ---------------------FORCE_ACTION-----------------------------
 
 FORCED_ACTION = None
 
-# ----------------------------------------------------------------------
+# --------------------------------------------------------------
 
 if __name__ == "__main__":
     env = RiderEnv(gradient=tenByOneKm, distance=10_000)
