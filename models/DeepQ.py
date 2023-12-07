@@ -32,7 +32,7 @@ class DeepQ:
         self.memory_size = 1000
         self.memories = []
 
-        self.learning_rate = 0.001
+        self.learning_rate = 0.01
         self.model = self.build_model()
 
     def build_model(self):
@@ -40,25 +40,19 @@ class DeepQ:
 
         model.add(Dense(100, input_dim=self.input_dims, activation="relu"))
 
-        model.add(Dense(100, activation="relu"))
+        model.add(Dense(200, activation="relu"))
 
-        model.add(Dense(100, activation="relu"))
+        model.add(Dense(200, activation="relu"))
 
-        model.add(Dense(100, activation="relu"))
+        model.add(Dense(200, activation="relu"))
 
-        model.add(Dense(100, activation="relu"))
-
-        model.add(Dense(50, activation="relu"))
-
-        model.add(Dense(50, activation="relu"))
+        model.add(Dense(200, activation="relu"))
 
         model.add(Dense(self.output_dims, activation="linear"))
 
-        # add in a learning rate scheduler
-
         lr_schedule = keras.optimizers.schedules.ExponentialDecay(
             initial_learning_rate=self.learning_rate,
-            decay_steps=10000,
+            decay_steps=1000,
             decay_rate=0.9,
         )
 
@@ -84,19 +78,16 @@ class DeepQ:
 
         states = np.array(states)
 
-        targets = np.zeros((self.batch_size, self.output_dims))
-
         currents = self.model.predict(states, verbose=0)
         nexts = self.model.predict(np.array(next_states), verbose=0)
 
         for i, action in enumerate(actions):
-            targets[i] = currents[i]
-            targets[i][action] = rewards[i]
+            currents[i][action] = rewards[i]
 
             if not terminals[i]:
-                targets[i][action] += self.gamma * np.amax(nexts[i])
+                currents[i][action] += self.gamma * np.amax(nexts[i])
 
-        self.model.fit(states, targets, epochs=1, verbose=1)
+        self.model.fit(states, currents, epochs=1, verbose=1)
 
         self.epsilon = max(self.epsilon_min, self.epsilon * self.epsilon_decay)
 
