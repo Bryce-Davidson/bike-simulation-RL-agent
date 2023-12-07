@@ -98,11 +98,11 @@ class DeepMonteCarlo:
 course = "tenByOneKm"
 distance = 10_000
 
-log_path = f"../logs/"
+log_path = f"../logs"
 
 slug = f"DMC-{distance}m-{course}-{datetime.datetime.now().strftime('%d-%m-%Y_%H:%M')}"
 
-log_slug = f"{log_path}{slug}.csv"
+log_slug = f"{log_path}/{slug}.csv"
 
 # -------------------------TRAINING-----------------------------
 
@@ -130,23 +130,20 @@ for e in range(episodes):
 
         total_reward += reward
 
-        write_row(
-            log_slug,
-            {
-                "episode": e,
-                "epsilon": agent.epsilon,
-                "action": action,
-                "total_reward": total_reward,
-                "step": env.step_count,
-                "exit_reason": None if not terminated else "terminated",
-                **cur_info,
-            },
-        )
-
         if terminated or truncated:
             agent.replay(total_reward)
-
             agent.save(slug)
+
+            write_row(
+                log_slug,
+                {
+                    "episode": e,
+                    "epsilon": agent.epsilon,
+                    "reward": total_reward,
+                    "steps": env.step_count,
+                    "exit_reason": None if not terminated else "terminated",
+                },
+            )
 
             print(f"---------Episode: {e+1}-----------")
             print(f"Epsilon: {agent.epsilon}")

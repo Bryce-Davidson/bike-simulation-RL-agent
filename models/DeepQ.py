@@ -110,11 +110,11 @@ class DeepQ:
 course = "tenByOneKm"
 distance = 10_000
 
-log_path = f"../logs/"
+log_path = f"../logs"
 
 slug = f"DQN-{distance}m-{course}-{datetime.datetime.now().strftime('%d-%m-%Y_%H:%M')}"
 
-log_slug = f"{log_path}{slug}.csv"
+log_slug = f"{log_path}/{slug}.csv"
 
 # -------------------------TRAINING-----------------------------
 
