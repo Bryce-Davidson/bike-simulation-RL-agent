@@ -1,13 +1,13 @@
 import sys
 import os
 
-# Add the parent directory to the path so we can import the env
+# Add the parent directory to the path so we can import the libraries
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from lib.logs import write_row
 from lib.JsonEncoders import NpEncoder
 from env import RiderEnv
-from courses import tenByOneKm, rollingHills, shortTest
+from courses import shortTest
 from keras.optimizers.legacy import Adam
 from keras.layers import Dense, Dropout, Flatten
 from gym.wrappers import FlattenObservation
@@ -27,7 +27,7 @@ class DeepQ:
         self.gamma = 0.9  # discount rate
         self.epsilon = 1  # initial exploration rate
         self.epsilon_min = 0.01  # minimum exploration rate
-        self.epsilon_decay = 0.995  # exploration decay rate
+        self.epsilon_decay = 0.9995  # exploration decay rate
 
         self.memory_size = 1000
         self.memories = []
@@ -58,7 +58,7 @@ class DeepQ:
     def remember(self, state, action, reward, next_state, terminated):
         self.memories.append((state, action, reward, next_state, terminated))
 
-        if len(self.memories) > self.batch_size:
+        if len(self.memories) >= self.batch_size:
             self.replay()
             self.memories.pop(0)
 
@@ -88,38 +88,20 @@ class DeepQ:
 
         self.model.fit(np.array(states), np.array(targets), epochs=1, verbose=1)
 
-        # Decay the exploration rate
-        if self.epsilon > self.epsilon_min:
-            self.epsilon *= self.epsilon_decay
+        self.epsilon = max(self.epsilon_min, self.epsilon * self.epsilon_decay)
 
     def act(self, state):
         if np.random.rand() <= self.epsilon:
             random_action = random.randrange(self.output_dims)
-            # print(f"Random action: {random_action}")
             return random_action
 
         state = np.array([state])
         act_values = self.model.predict(state, verbose=0)
         predicted_action = np.argmax(act_values[0])
-        # print(f"Predicted action: {predicted_action}")
         return predicted_action
 
     def save(self, slug):
         self.model.save(filepath=f"./weights/{slug}.keras")
-
-
-# -------------------------LOGS---------------------------------
-
-course = "shortTest"
-distance = 1200
-
-log_path = f"./logs"
-
-slug = f"DQN-{distance}m-{course}-{datetime.datetime.now().strftime('%d-%m-%Y_%H:%M')}"
-
-log_slug = f"{log_path}/{slug}.csv"
-
-# -------------------------TRAINING-----------------------------
 
 
 def reward_fn(state):
@@ -144,12 +126,26 @@ def reward_fn(state):
         reward += -AWC
 
     if percent_complete >= 1:
-        reward += 1000
+        reward += 100000
 
     return reward
 
 
-env = RiderEnv(gradient=tenByOneKm, distance=distance, reward=reward_fn)
+# -------------------------LOGS---------------------------------
+
+course = "shortTest"
+distance = 1200
+
+log_path = f"./logs"
+
+slug = f"DQN-{distance}m-{course}-{datetime.datetime.now().strftime('%d-%m-%Y_%H:%M')}"
+
+log_slug = f"{log_path}/{slug}.csv"
+
+# -------------------------TRAINING-----------------------------
+
+
+env = RiderEnv(gradient=shortTest, distance=distance, reward=reward_fn)
 
 # Define the input and output dimensions
 input_dims = len(env.observation_space)
@@ -161,7 +157,6 @@ agent = DeepQ(input_dims, output_dims, batch_size=64)
 # Define the number of episodes
 episodes = 600
 for e in range(0, episodes):
-    # Reset the environment and get the initial state
     cur_state, cur_info = env.reset()
 
     total_reward = 0
@@ -171,11 +166,6 @@ for e in range(0, episodes):
         next_state, reward, terminated, truncated, next_info = env.step(action)
 
         agent.remember(cur_state, action, reward, next_state, terminated)
-
-        print(f"---------Episode: {e}, Step: {env.step_count}---------")
-        print(f"Action: {action}")
-        print(f"Epsilon: {agent.epsilon}")
-        print(json.dumps(next_info, indent=4, cls=NpEncoder))
 
         cur_state, cur_info = next_state, next_info
 

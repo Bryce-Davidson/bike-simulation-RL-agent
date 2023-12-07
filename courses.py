@@ -36,19 +36,15 @@ def flat(x):
 
 
 def rollingHills(x):
-    return np.cos(x / 100) * 15
+    return np.cos(x / 200) * 100
 
 
-def shortTest(x):
+def testCourse(x):
     if x <= 100:
         return 15
-    elif x <= 300:
-        return -15
-    elif x <= 500:
-        return 0
-    elif x <= 700:
-        return 15
-    elif x <= 900:
-        return -15
+    if x <= 200:
+        return -20
+    if x <= 300:
+        return 20
     else:
         return 0

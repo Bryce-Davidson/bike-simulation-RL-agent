@@ -4,50 +4,61 @@ import keras
 import time
 import json
 
-from courses import tenByOneKm, flat, rollingHills, shortTest
+from courses import testCourse
 from env import RiderEnv
 from lib.JsonEncoders import NpEncoder
 
 DATA_DIR = "./data"
 
+
+def rider100(grad):
+    return 10
+
+
+def rider100_80(grad):
+    action = 10
+    if grad < 0:
+        action = 8
+    return action
+
+
 # --------------------------------------------------------------
 
-course_name = "shortTest"
-distance = 1200
+course_name = "testCourse"
+distance = 400
 
 # --------------------------------------------------------------
 
 if __name__ == "__main__":
-    env = RiderEnv(gradient=shortTest, distance=distance, reward=lambda x: 0)
+    models = [(rider100, "10"), (rider100_80, "10:8")]
 
-    data = []
+    for model, model_name in models:
+        env = RiderEnv(gradient=testCourse, distance=distance, reward=lambda x: 0)
 
-    state, info = env.reset()
+        data = []
 
-    while env.cur_position < env.COURSE_DISTANCE:
-        state = np.array([state])
+        state, info = env.reset()
 
-        if env.gradient(env.cur_position) >= 0:
-            action = 10
-        else:
-            action = 8
+        while env.cur_position < env.COURSE_DISTANCE:
+            state = np.array([state])
 
-        state, reward, terminated, truncated, info = env.step(action)
+            action = model(env.gradient(env.cur_position))
 
-        data.append(info)
+            state, reward, terminated, truncated, info = env.step(action)
 
-        print(
-            json.dumps(
-                info,
-                indent=4,
-                cls=NpEncoder,
+            data.append(info)
+
+            print(
+                json.dumps(
+                    info,
+                    indent=4,
+                    cls=NpEncoder,
+                )
             )
-        )
 
-        # time.sleep(0.1)
+            # time.sleep(0.1)
 
-    # -------------------------DATA---------------------------------
+        # -------------------------DATA---------------------------------
 
-    df = pd.DataFrame(data)
-    # df.to_csv(f"{DATA_DIR}/{course_name}-{distance}m-forced_action_{action}.csv")
-    df.to_csv(f"{DATA_DIR}/{course_name}-{distance}m-forced_action_10:8.csv")
+        df = pd.DataFrame(data)
+        df.to_csv(f"{DATA_DIR}/{course_name}-{distance}m-{model_name}-rider.csv")
