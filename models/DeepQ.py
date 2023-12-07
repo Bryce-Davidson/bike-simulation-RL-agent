@@ -114,7 +114,7 @@ def reward_fn(state):
     reward = -1
 
     if percent_complete >= 1:
-        reward += 1000000
+        reward += 10000
 
     return reward
 
@@ -156,7 +156,7 @@ for e in range(0, episodes):
 
         total_reward += reward
 
-        agent.remember(cur_state, action, reward, next_state, terminated)
+        agent.remember(cur_state, action, total_reward, next_state, terminated)
 
         print(
             json.dumps(
