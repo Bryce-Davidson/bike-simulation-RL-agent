@@ -143,11 +143,11 @@ for e in range(episodes):
 
         next_state, reward, terminated, truncated, next_info = env.step(action)
 
+        total_reward += reward
+
         agent.remember(cur_state, action)
 
         cur_state, cur_info = next_state, next_info
-
-        total_reward += reward
 
         if terminated or truncated:
             agent.replay(total_reward)

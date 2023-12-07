@@ -64,7 +64,7 @@ class DeepQ:
     def remember(self, state, action, reward, next_state, terminated):
         self.memories.append((state, action, reward, next_state, terminated))
 
-        if len(self.memories) >= self.batch_size:
+        if len(self.memories) > self.batch_size:
             self.replay()
             self.memories.pop(0)
 
@@ -121,7 +121,7 @@ def reward_fn(state):
     reward = -1
 
     if percent_complete >= 1:
-        reward += 100000
+        reward += 1000000
 
     return reward
 
@@ -150,28 +150,37 @@ output_dims = env.action_space.n + 1
 agent = DeepQ(input_dims, output_dims, batch_size=64)
 
 # Define the number of episodes
-episodes = 600
+episodes = 10000
 for e in range(0, episodes):
     cur_state, cur_info = env.reset()
 
     total_reward = 0
     while True:
+        print(f"---------Episode: {e+1}-----------")
         action = agent.act(cur_state)
 
         next_state, reward, terminated, truncated, next_info = env.step(action)
 
+        total_reward += reward
+
         agent.remember(cur_state, action, reward, next_state, terminated)
 
-        if len(agent.memories) >= agent.batch_size:
-            print(json.dumps(next_info, indent=4, cls=NpEncoder))
+        print(
+            json.dumps(
+                {
+                    **next_info,
+                    "step": env.step_count,
+                    "total_reward": total_reward,
+                },
+                indent=4,
+                cls=NpEncoder,
+            )
+        )
 
         cur_state, cur_info = next_state, next_info
 
-        total_reward += reward
-
         if terminated or truncated:
             agent.save(slug)
-
             write_row(
                 log_slug,
                 {
