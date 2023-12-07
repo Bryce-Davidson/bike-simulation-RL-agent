@@ -38,10 +38,19 @@ class DeepQ:
             f"./weights/DMC-1200m-shortTest-07-12-2023_00:06-WINNER.keras"
         )
 
-        # Set the first 3 layers to not trainable
-        self.model.layers[0].trainable = False
-        self.model.layers[1].trainable = False
-        self.model.layers[2].trainable = False
+        # Set all the layers to not trainable
+        for layer in self.model.layers:
+            layer.trainable = False
+        # Delete the last layer
+        self.model.pop()
+        # Add a transfer layer
+        self.model.add(Dense(200, activation="relu", name="transfer_dense_1"))
+        self.model.add(Dense(200, activation="relu", name="transfer_dense_2"))
+        # Add a new layer with the correct number of outputs
+        self.model.add(
+            Dense(self.output_dims, activation="linear", name="transfer_out")
+        )
+        # Recompile the model
 
         # Print a summary of the model
         self.model.summary()
@@ -109,7 +118,7 @@ distance = 1200
 
 log_path = f"./logs"
 
-slug = f"DQN-{distance}m-{course}-{datetime.datetime.now().strftime('%d-%m-%Y_%H:%M')}"
+slug = f"TDQN-{distance}m-{course}-{datetime.datetime.now().strftime('%d-%m-%Y_%H:%M')}"
 
 log_slug = f"{log_path}/{slug}.csv"
 
@@ -132,7 +141,7 @@ def reward_fn(state):
     reward = -1
 
     if percent_complete >= 0.95:
-        reward += -AWC * 0.01
+        reward += 10000
 
     return reward
 
