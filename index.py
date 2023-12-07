@@ -14,7 +14,7 @@ DATA_DIR = "./data"
 # --------------------------------------------------------------
 
 
-MODEL_SLUG = "DMC-1200m-shortTest-06-12-2023_23:43"
+MODEL_SLUG = "DMC-1200m-shortTest-07-12-2023_00:06-WINNER"
 course_name = "shortTest"
 distance = 1200
 
@@ -46,7 +46,7 @@ if __name__ == "__main__":
             )
         )
 
-        # time.sleep(0.1)
+        time.sleep(0.01)
 
     # -------------------------DATA---------------------------------
 
