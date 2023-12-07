@@ -71,25 +71,19 @@ class DeepQ:
 
         for state, action, reward, next_state, terminated in batch:
             states.append(state)
-            state = np.array([state])
-            next_state = np.array([next_state])
 
             target = reward
-
             if not terminated:
                 target = reward + self.gamma * np.amax(
-                    self.model.predict(next_state, verbose=0)[0]
+                    self.model.predict(np.array([next_state]), verbose=0)[0]
                 )
 
-            current = self.model.predict(state, verbose=0)
+            current = self.model.predict(np.array([state]), verbose=0)
             current[0][action] = target
 
             targets.append(current[0])
 
-        states = np.array(states)
-        targets = np.array(targets)
-
-        self.model.fit(states, targets, epochs=1, verbose=1)
+        self.model.fit(np.array(states), np.array(targets), epochs=1, verbose=1)
 
         # Decay the exploration rate
         if self.epsilon > self.epsilon_min:
@@ -98,13 +92,13 @@ class DeepQ:
     def act(self, state):
         if np.random.rand() <= self.epsilon:
             random_action = random.randrange(self.output_dims)
-            print(f"Random action: {random_action}")
+            # print(f"Random action: {random_action}")
             return random_action
 
         state = np.array([state])
         act_values = self.model.predict(state, verbose=0)
         predicted_action = np.argmax(act_values[0])
-        print(f"Predicted action: {predicted_action}")
+        # print(f"Predicted action: {predicted_action}")
         return predicted_action
 
     def save(self, name):
@@ -118,7 +112,7 @@ distance = 10_000
 
 log_path = f"../logs/"
 
-slug = f"DMC-{distance}m-{course}-{datetime.datetime.now().strftime('%d-%m-%Y_%H:%M')}"
+slug = f"DQN-{distance}m-{course}-{datetime.datetime.now().strftime('%d-%m-%Y_%H:%M')}"
 
 log_slug = f"{log_path}{slug}.csv"
 
