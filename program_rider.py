@@ -27,7 +27,10 @@ if __name__ == "__main__":
     while env.cur_position < env.COURSE_DISTANCE:
         state = np.array([state])
 
-        action = 6
+        if env.gradient(env.cur_position) >= 0:
+            action = 10
+        else:
+            action = 8
 
         state, reward, terminated, truncated, info = env.step(action)
 
@@ -46,4 +49,5 @@ if __name__ == "__main__":
     # -------------------------DATA---------------------------------
 
     df = pd.DataFrame(data)
-    df.to_csv(f"{DATA_DIR}/{course_name}-{distance}-forced_action_{action}.csv")
+    # df.to_csv(f"{DATA_DIR}/{course_name}-{distance}m-forced_action_{action}.csv")
+    df.to_csv(f"{DATA_DIR}/{course_name}-{distance}m-forced_action_10:8.csv")
