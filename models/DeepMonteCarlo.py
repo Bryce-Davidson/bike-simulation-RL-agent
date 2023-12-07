@@ -31,15 +31,17 @@ class DeepMonteCarlo:
         self.states = []
         self.actions = []
 
-        self.learning_rate = 0.001
+        self.learning_rate = 0.0001
         self.model = self.build_model()
 
     def build_model(self):
         model = keras.models.Sequential()
 
-        model.add(Dense(24, input_dim=self.input_dims, activation="relu"))
+        model.add(Dense(100, input_dim=self.input_dims, activation="relu"))
 
-        model.add(Dense(24, activation="relu"))
+        model.add(Dense(100, activation="relu"))
+
+        model.add(Dense(100, activation="relu"))
 
         model.add(Dense(self.output_dims, activation="linear"))
 
@@ -73,6 +75,9 @@ class DeepMonteCarlo:
         self.epsilon = max(self.epsilon_min, self.epsilon * self.epsilon_decay)
 
         self.forget()
+
+        # return the loss for logging
+        return self.model.evaluate(training_states, currents, verbose=0)
 
     def act(self, state):
         if np.random.rand() <= self.epsilon:
@@ -160,13 +165,14 @@ for e in range(episodes):
             if e >= 2000:
                 agent.epsilon_decay = 0.9995
 
-            agent.replay(total_reward)
+            loss = agent.replay(total_reward)
             agent.save(slug)
 
             write_row(
                 log_slug,
                 {
                     "episode": e,
+                    "loss": loss,
                     "epsilon": agent.epsilon,
                     "reward": total_reward,
                     "steps": env.step_count,
