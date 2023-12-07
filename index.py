@@ -14,7 +14,11 @@ MODEL_SLUG = "DMC-100m-tenByOneKm-06-12-2023_13:49"
 # load the model from the .keras file
 model = keras.models.load_model(f"{WEIGHTS_FOLDER_PATH}/{MODEL_SLUG}.keras")
 
-FORCED_ACTION = 10
+# -------------------------FORCE_ACTION---------------------------------
+
+FORCED_ACTION = None
+
+# ----------------------------------------------------------------------
 
 if __name__ == "__main__":
     env = RiderEnv(gradient=tenByOneKm, distance=10_000)
@@ -45,7 +49,7 @@ if __name__ == "__main__":
 
         time.sleep(0.1)
 
-    # Save the data to a csv file
+    # -------------------------DATA---------------------------------
 
     df = pd.DataFrame(data)
     if FORCED_ACTION:
