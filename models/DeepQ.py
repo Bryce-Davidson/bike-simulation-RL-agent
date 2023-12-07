@@ -32,17 +32,19 @@ class DeepQ:
         self.memory_size = 1000
         self.memories = []
 
-        self.learning_rate = 0.001
+        self.learning_rate = 0.01
         self.model = self.build_model()
 
     def build_model(self):
         model = keras.models.Sequential()
 
-        model.add(Dense(64, input_dim=self.input_dims, activation="relu"))
+        model.add(Dense(100, input_dim=self.input_dims, activation="relu"))
 
-        model.add(Dense(64, activation="relu"))
+        model.add(Dense(100, activation="relu"))
 
-        model.add(Dense(64, activation="relu"))
+        model.add(Dense(100, activation="relu"))
+
+        model.add(Dense(100, activation="relu"))
 
         model.add(Dense(self.output_dims, activation="linear"))
 
@@ -102,7 +104,7 @@ class DeepQ:
         # print(f"Predicted action: {predicted_action}")
         return predicted_action
 
-    def save(self, name):
+    def save(self, slug):
         self.model.save(filepath=f"./weights/{slug}.keras")
 
 
@@ -111,7 +113,7 @@ class DeepQ:
 course = "shortTest"
 distance = 1200
 
-log_path = f"../logs"
+log_path = f"./logs"
 
 slug = f"DQN-{distance}m-{course}-{datetime.datetime.now().strftime('%d-%m-%Y_%H:%M')}"
 
@@ -136,10 +138,13 @@ def reward_fn(state):
     reward = -1
 
     if velocity < 0:
-        reward = -100
+        reward += -100
+
+    if percent_complete >= 1 and AWC > 0:
+        reward += -AWC
 
     if percent_complete >= 1:
-        reward = 1000
+        reward += 1000
 
     return reward
 
@@ -151,11 +156,11 @@ input_dims = len(env.observation_space)
 output_dims = env.action_space.n + 1
 
 # Create the agent
-agent = DeepQ(input_dims, output_dims, batch_size=128)
+agent = DeepQ(input_dims, output_dims, batch_size=64)
 
 # Define the number of episodes
 episodes = 600
-for e in range(episodes):
+for e in range(0, episodes):
     # Reset the environment and get the initial state
     cur_state, cur_info = env.reset()
 
@@ -167,7 +172,7 @@ for e in range(episodes):
 
         agent.remember(cur_state, action, reward, next_state, terminated)
 
-        print(f"---------Episode: {e+1}, Step: {env.step_count}---------")
+        print(f"---------Episode: {e}, Step: {env.step_count}---------")
         print(f"Action: {action}")
         print(f"Epsilon: {agent.epsilon}")
         print(json.dumps(next_info, indent=4, cls=NpEncoder))

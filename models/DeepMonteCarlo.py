@@ -31,17 +31,17 @@ class DeepMonteCarlo:
         self.states = []
         self.actions = []
 
-        self.learning_rate = 0.0001
+        self.learning_rate = 0.001
         self.model = self.build_model()
 
     def build_model(self):
         model = keras.models.Sequential()
 
-        model.add(Dense(100, input_dim=self.input_dims, activation="relu"))
+        model.add(Dense(500, input_dim=self.input_dims, activation="relu"))
 
-        model.add(Dense(100, activation="relu"))
+        model.add(Dense(500, activation="relu"))
 
-        model.add(Dense(100, activation="relu"))
+        model.add(Dense(500, activation="relu"))
 
         model.add(Dense(self.output_dims, activation="linear"))
 
@@ -127,12 +127,6 @@ def reward_fn(state):
 
     reward = -1
 
-    if velocity < 0:
-        reward = -100
-
-    if percent_complete >= 1:
-        reward = 100
-
     return reward
 
 
@@ -161,9 +155,8 @@ for e in range(episodes):
         total_reward += reward
 
         if terminated or truncated:
-            # start to get greedy after 2000 episodes
-            if e >= 2000:
-                agent.epsilon_decay = 0.9995
+            if e >= 10000:
+                agent.epsilon_decay = 0.1
 
             loss = agent.replay(total_reward)
             agent.save(slug)
