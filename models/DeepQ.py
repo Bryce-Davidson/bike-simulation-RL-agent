@@ -27,7 +27,7 @@ class DeepQ:
         self.gamma = 0.9  # discount rate
         self.epsilon = 1  # initial exploration rate
         self.epsilon_min = 0.01  # minimum exploration rate
-        self.epsilon_decay = 0.99999  # exploration decay rate
+        self.epsilon_decay = 0.995  # exploration decay rate
 
         self.memory_size = 1000
         self.memories = []
@@ -103,7 +103,7 @@ class DeepQ:
         return predicted_action
 
     def save(self, name):
-        self.model.save(name)
+        self.model.save(filepath=f"./weights/{slug}.keras")
 
 
 # -------------------------LOGS---------------------------------
@@ -155,7 +155,7 @@ agent = DeepQ(input_dims, output_dims, batch_size=128)
 
 # Define the number of episodes
 episodes = 600
-for e in range(1, episodes + 1):
+for e in range(episodes):
     # Reset the environment and get the initial state
     cur_state, cur_info = env.reset()
 
@@ -177,7 +177,7 @@ for e in range(1, episodes + 1):
         total_reward += reward
 
         if terminated or truncated:
-            agent.replay(total_reward)
+            agent.save(slug)
 
             write_row(
                 log_slug,
@@ -189,8 +189,6 @@ for e in range(1, episodes + 1):
                     "exit_reason": "terminated" if terminated else "truncated",
                 },
             )
-
-            agent.save(slug)
 
             print(f"---------Episode: {e+1}-----------")
             print(f"Epsilon: {agent.epsilon}")

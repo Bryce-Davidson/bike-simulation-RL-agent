@@ -156,6 +156,10 @@ for e in range(episodes):
         total_reward += reward
 
         if terminated or truncated:
+            # start to get greedy after 2000 episodes
+            if e >= 2000:
+                agent.epsilon_decay = 0.9995
+
             agent.replay(total_reward)
             agent.save(slug)
 
