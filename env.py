@@ -49,7 +49,7 @@ class RiderEnv:
         self.render_mode = None
 
         self.step_count = 0
-        self.course_fn = gradient
+        self.gradient = gradient
         self.START_DISTANCE = 0
         self.COURSE_DISTANCE = distance
 
@@ -84,13 +84,13 @@ class RiderEnv:
             [
                 max_power(self.cur_AWC_j),  # power_max_w
                 self.cur_velocity,  # velocity
-                self.course_fn(self.cur_position),  # gradient
+                self.gradient(self.cur_position),  # gradient
                 self.cur_position / self.COURSE_DISTANCE,  # percent_complete
                 self.cur_AWC_j,  # AWC
             ]
         )
 
-    def info(self, meta: dict) -> dict:
+    def info(self, meta: dict = {}) -> dict:
         state = self.state
         return {
             "power_max_w": state[0],
@@ -136,7 +136,7 @@ class RiderEnv:
         # Resistance calculations
         # -----------------------
 
-        slope_percent = self.course_fn(self.cur_position)
+        slope_percent = self.gradient(self.cur_position)
         slope_radians = np.arctan(slope_percent / 100)
 
         horizontal_gravity_force = G * RIDER_MASS_kg * np.sin(slope_radians)
