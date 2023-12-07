@@ -96,8 +96,7 @@ class DeepQ:
             return random.randrange(self.output_dims)
 
         state = np.array([state])
-        act_values = self.model.predict(state, verbose=0)
-        return np.argmax(act_values[0])
+        return np.argmax(self.model.predict(state, verbose=0)[0])
 
     def save(self, slug):
         self.model.save(filepath=f"./weights/{slug}.keras")
