@@ -17,6 +17,8 @@ import numpy as np
 import random
 import json
 
+np.set_printoptions(suppress=True)
+
 
 class DeepQ:
     def __init__(self, input_dims, output_dims, batch_size=32):
@@ -27,7 +29,7 @@ class DeepQ:
         self.gamma = 0.9  # discount rate
         self.epsilon = 1  # initial exploration rate
         self.epsilon_min = 0.01  # minimum exploration rate
-        self.epsilon_decay = 0.995  # exploration decay rate
+        self.epsilon_decay = 0.9999  # exploration decay rate
 
         self.memory_size = 1000
         self.memories = []
@@ -113,6 +115,7 @@ log_slug = f"{log_path}/{slug}.csv"
 # -------------------------REWARDS--------------------------
 
 ghost = RiderEnv(gradient=testCourse, distance=distance, reward=lambda x: 0)
+ghost.reset()
 
 
 def reward_fn(state):
@@ -130,10 +133,10 @@ def reward_fn(state):
         ghost_gradient,
         ghost_percent_complete,
         ghost_AWC,
-    ) = ghost.step(10)
+    ) = ghost.step(10)[0]
 
     if ghost_percent_complete >= 1 and agent_percent_complete <= 1:
-        return -1000000
+        return -10000
 
     return (agent_percent_complete - ghost_percent_complete) * 100
 
@@ -152,6 +155,7 @@ agent = DeepQ(input_dims, output_dims, batch_size=128)
 # Define the number of episodes
 episodes = 100000
 for e in range(0, episodes):
+    ghost.reset()
     cur_state, cur_info = env.reset()
 
     total_reward = 0
