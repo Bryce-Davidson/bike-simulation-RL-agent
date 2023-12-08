@@ -32,7 +32,7 @@ class DeepQ:
         self.epsilon_min = 0.01  # minimum exploration rate
         self.epsilon_decay = 0.9995  # exploration decay rate
 
-        self.memory_size = 1000
+        self.memory_size = 2000
         self.memories = deque(maxlen=self.memory_size)
 
         self.learning_rate = 0.01
@@ -79,8 +79,8 @@ class DeepQ:
 
         # Update the current network with the new values
         for i, action in enumerate(actions):
+            # If the next state is terminal, don't calculate the discounted reward
             currents[i][action] = rewards[i]
-
             if not terminals[i]:
                 currents[i][action] += self.gamma * np.amax(nexts[i])
 
@@ -92,6 +92,9 @@ class DeepQ:
 
         # Update the epsilon value
         self.epsilon = max(self.epsilon_min, self.epsilon * self.epsilon_decay)
+
+        # Increment the number of replays
+        self.replays += 1
 
     def act(self, state):
         if np.random.rand() <= self.epsilon:
@@ -118,7 +121,8 @@ log_slug = f"{log_path}/{slug}.csv"
 
 # -------------------------REWARDS--------------------------
 
-ghost = RiderEnv(gradient=testCourse, distance=distance, reward=lambda x: 0)
+ghost_env = RiderEnv(gradient=testCourse, distance=distance, reward=lambda x: 0)
+ghost_action = 10
 
 
 def reward_fn(state):
@@ -136,7 +140,7 @@ def reward_fn(state):
         ghost_gradient,
         ghost_percent_complete,
         ghost_AWC,
-    ) = ghost.step(10)[0]
+    ) = ghost_env.step(ghost_action)[0]
 
     if agent_percent_complete >= 1 and ghost_percent_complete < 1:
         return 10000000
@@ -171,12 +175,18 @@ agent = DeepQ(input_dims, output_dims, batch_size=64)
 episodes = 100000
 
 for e in range(0, episodes):
-    ghost.reset()
+    ghost_env.reset()
     cur_state, cur_info = env.reset()
 
     total_reward = 0
     while True:
         print(f"---------Episode: {e+1}/{episodes}, Step: {env.step_count}-----------")
+
+        if ghost_env.gradient(ghost_env.cur_position) > 0:
+            ghost_action = 10
+        else:
+            ghost_action = 8
+
         action = agent.act(cur_state)
 
         next_state, reward, terminated, truncated, next_info = env.step(action)
@@ -191,6 +201,7 @@ for e in range(0, episodes):
                     **next_info,
                     "total_reward": total_reward,
                     "epsilon": agent.epsilon,
+                    "replays": agent.replays,
                 },
                 indent=4,
                 cls=NpEncoder,

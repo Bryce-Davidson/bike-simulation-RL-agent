@@ -4,6 +4,7 @@ import os
 # Add the parent directory to the path so we can import the libraries
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
+from collections import deque
 from lib.logs import write_row
 from lib.JsonEncoders import NpEncoder
 from env import RiderEnv
@@ -21,7 +22,7 @@ np.set_printoptions(suppress=True)
 
 
 class DeepQ:
-    def __init__(self, adversary, batch_size=32):
+    def __init__(self, input_dims, output_dims, batch_size=32):
         self.input_dims = input_dims
         self.output_dims = output_dims
         self.batch_size = batch_size
@@ -29,23 +30,40 @@ class DeepQ:
         self.gamma = 0.9  # discount rate
         self.epsilon = 1  # initial exploration rate
         self.epsilon_min = 0.01  # minimum exploration rate
-        self.epsilon_decay = 0.9999  # exploration decay rate
+        self.epsilon_decay = 0.9995  # exploration decay rate
 
         self.memory_size = 1000
-        self.memories = []
+        self.memories = deque(maxlen=self.memory_size)
 
         self.learning_rate = 0.01
-        self.model = adversary
+        self.model = self.build_model()
+        self.target = keras.models.clone_model(self.model)
+        self.replays = 0
 
-    def forget(self):
-        self.memories = []
+    def build_model(self):
+        model = keras.models.Sequential()
+
+        model.add(Dense(100, input_dim=self.input_dims, activation="relu"))
+
+        model.add(Dense(100, activation="relu"))
+
+        model.add(Dense(self.output_dims, activation="linear"))
+
+        lr_schedule = keras.optimizers.schedules.ExponentialDecay(
+            initial_learning_rate=self.learning_rate,
+            decay_steps=3000,
+            decay_rate=0.9,
+        )
+
+        model.compile(loss="mse", optimizer=Adam(learning_rate=lr_schedule))
+
+        return model
 
     def remember(self, state, action, reward, next_state, terminated):
         self.memories.append((state, action, reward, next_state, terminated))
 
         if len(self.memories) > self.batch_size:
             self.replay()
-            self.memories.pop(0)
 
     def replay(self):
         batch = random.sample(self.memories, self.batch_size)
@@ -54,9 +72,12 @@ class DeepQ:
 
         states = np.array(states)
 
+        # Predict states using the current network
         currents = self.model.predict(states, verbose=0)
-        nexts = self.model.predict(np.array(next_states), verbose=0)
+        # Predict next states using the target network
+        nexts = self.target.predict(np.array(next_states), verbose=0)
 
+        # Update the current network with the new values
         for i, action in enumerate(actions):
             currents[i][action] = rewards[i]
 
@@ -65,6 +86,11 @@ class DeepQ:
 
         self.model.fit(states, currents, epochs=1, verbose=1)
 
+        # Update the target network every 100 steps
+        if self.replays % 100 == 0:
+            self.target.set_weights(self.model.get_weights())
+
+        # Update the epsilon value
         self.epsilon = max(self.epsilon_min, self.epsilon * self.epsilon_decay)
 
     def act(self, state):
@@ -85,18 +111,14 @@ distance = 400
 
 log_path = f"../logs"
 
-slug = f"DQN-{distance}m-{course}-{datetime.datetime.now().strftime('%d-%m-%Y_%H:%M')}"
+slug = f"DDQN-{distance}m-{course}-{datetime.datetime.now().strftime('%d-%m-%Y_%H:%M')}"
 
 log_slug = f"{log_path}/{slug}.csv"
 
 
-# -------------------------ADVERARY-----------------------------
+# -------------------------REWARDS--------------------------
 
-ADVERSARY_MODEL_SLUG = "DQN-400m-testCourse-15-04-2021_16:00"
-
-ghost_agent = keras.models.load_model(f"./weights/{ADVERSARY_MODEL_SLUG}.keras")
-
-ghost_env = RiderEnv(gradient=testCourse, distance=distance, reward=lambda x: 0)
+ghost = RiderEnv(gradient=testCourse, distance=distance, reward=lambda x: 0)
 
 
 def reward_fn(state):
@@ -114,14 +136,16 @@ def reward_fn(state):
         ghost_gradient,
         ghost_percent_complete,
         ghost_AWC,
-    ) = ghost_env.step(10)[0]
+    ) = ghost.step(10)[0]
 
     if agent_percent_complete >= 1 and ghost_percent_complete < 1:
         return 10000000
 
     reward = -1
 
-    reward += agent_percent_complete - ghost_percent_complete
+    diff = agent_percent_complete - ghost_percent_complete
+
+    reward += diff if diff > 0 else diff * 1000
 
     if agent_velocity < 0:
         reward -= 100
@@ -141,12 +165,13 @@ input_dims = len(env.observation_space)
 output_dims = env.action_space.n + 1
 
 # Create the agent
-agent = DeepQ(input_dims, output_dims, batch_size=128)
+agent = DeepQ(input_dims, output_dims, batch_size=64)
 
 # Define the number of episodes
 episodes = 100000
+
 for e in range(0, episodes):
-    ghost_curstate, ghost_curinfo = ghost_env.reset()
+    ghost.reset()
     cur_state, cur_info = env.reset()
 
     total_reward = 0
