@@ -29,7 +29,7 @@ class DeepQ:
         self.gamma = 0.1  # discount rate
         self.epsilon = 1  # initial exploration rate
         self.epsilon_min = 0.001  # minimum exploration rate
-        self.epsilon_decay = 0.999999  # exploration decay rate
+        self.epsilon_decay = 0.99999  # exploration decay rate
 
         self.memory_size = 1000
         self.memories = []
@@ -208,11 +208,5 @@ for e in range(0, episodes):
                     "exit_reason": "terminated" if terminated else "truncated",
                 },
             )
-
-            print(f"---------Episode: {e+1}-----------")
-            print(f"Epsilon: {agent.epsilon}")
-            print(f"Total reward: {total_reward}")
-            print(f"Steps: {env.step_count}")
-            print(f"Exit reason: {'terminated' if terminated else 'truncated'}")
 
             break
