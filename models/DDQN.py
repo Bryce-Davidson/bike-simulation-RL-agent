@@ -31,7 +31,7 @@ class DDQN:
         epsilon_start=1,
         epsilon_min=0.01,
         epsilon_decay=0.999,
-        target_replays=100,
+        target_life=100,
         mempry_size=1000,
         batch_size=32,
         lr_start=0.01,
@@ -42,7 +42,7 @@ class DDQN:
         self.output_dims = output_dims
         self.dense_layers = dense_layers
         self.batch_size = batch_size
-        self.target_replays = target_replays
+        self.target_replays = target_life
 
         self.gamma = gamma  # discount rate
         self.epsilon = epsilon_start  # exploration rate
@@ -183,22 +183,18 @@ def reward_fn(state):
 
 # -------------------------TRAINING-----------------------------
 
-env = RiderEnv(gradient=testCourse, distance=distance, reward=reward_fn, num_actions=50)
-
-# Define the input and output dimensions
-input_dims = len(env.observation_space)
-output_dims = env.action_space.n + 1
+env = RiderEnv(gradient=testCourse, distance=distance, reward=reward_fn, num_actions=10)
 
 # Create the agent
 agent = DDQN(
-    input_dims,
-    output_dims,
+    input_dims=len(env.observation_space),
+    output_dims=env.action_space.n + 1,
     dense_layers=[200, 200, 200],
     gamma=0.5,
     epsilon_start=1,
     epsilon_min=0.01,
-    epsilon_decay=0.9995,
-    target_replays=50,
+    epsilon_decay=0.9999,
+    target_life=50,
     mempry_size=10000,
     batch_size=64,
     lr_start=0.001,
