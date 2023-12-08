@@ -48,7 +48,7 @@ class DeepQ:
 
         lr_schedule = keras.optimizers.schedules.ExponentialDecay(
             initial_learning_rate=self.learning_rate,
-            decay_steps=5000,
+            decay_steps=2000,
             decay_rate=0.9,
             staircase=True,
         )
