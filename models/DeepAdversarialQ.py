@@ -21,7 +21,7 @@ np.set_printoptions(suppress=True)
 
 
 class DeepQ:
-    def __init__(self, input_dims, output_dims, batch_size=32):
+    def __init__(self, adversary, batch_size=32):
         self.input_dims = input_dims
         self.output_dims = output_dims
         self.batch_size = batch_size
@@ -35,28 +35,7 @@ class DeepQ:
         self.memories = []
 
         self.learning_rate = 0.01
-        self.model = self.build_model()
-
-    def build_model(self):
-        model = keras.models.Sequential()
-
-        model.add(Dense(100, input_dim=self.input_dims, activation="relu"))
-
-        model.add(Dense(100, activation="relu"))
-
-        model.add(Dense(100, activation="relu"))
-
-        model.add(Dense(self.output_dims, activation="linear"))
-
-        lr_schedule = keras.optimizers.schedules.ExponentialDecay(
-            initial_learning_rate=self.learning_rate,
-            decay_steps=1000,
-            decay_rate=0.9,
-        )
-
-        model.compile(loss="mse", optimizer=Adam(learning_rate=lr_schedule))
-
-        return model
+        self.model = adversary
 
     def forget(self):
         self.memories = []
@@ -111,11 +90,13 @@ slug = f"DQN-{distance}m-{course}-{datetime.datetime.now().strftime('%d-%m-%Y_%H
 log_slug = f"{log_path}/{slug}.csv"
 
 
-# -------------------------REWARDS--------------------------
+# -------------------------ADVERARY-----------------------------
 
-ghost = RiderEnv(gradient=testCourse, distance=distance, reward=lambda x: 0)
+ADVERSARY_MODEL_SLUG = "DQN-400m-testCourse-15-04-2021_16:00"
 
-ghost.reset()
+ghost_agent = keras.models.load_model(f"./weights/{ADVERSARY_MODEL_SLUG}.keras")
+
+ghost_env = RiderEnv(gradient=testCourse, distance=distance, reward=lambda x: 0)
 
 
 def reward_fn(state):
@@ -133,7 +114,7 @@ def reward_fn(state):
         ghost_gradient,
         ghost_percent_complete,
         ghost_AWC,
-    ) = ghost.step(10)[0]
+    ) = ghost_env.step(10)[0]
 
     if agent_percent_complete >= 1 and ghost_percent_complete < 1:
         return 10000000
@@ -165,7 +146,7 @@ agent = DeepQ(input_dims, output_dims, batch_size=128)
 # Define the number of episodes
 episodes = 100000
 for e in range(0, episodes):
-    ghost.reset()
+    ghost_curstate, ghost_curinfo = ghost_env.reset()
     cur_state, cur_info = env.reset()
 
     total_reward = 0
