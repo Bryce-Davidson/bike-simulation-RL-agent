@@ -27,7 +27,7 @@ class DeepQ:
         self.gamma = 0.9  # discount rate
         self.epsilon = 1  # initial exploration rate
         self.epsilon_min = 0.01  # minimum exploration rate
-        self.epsilon_decay = 0.99995  # exploration decay rate
+        self.epsilon_decay = 0.99999  # exploration decay rate
 
         self.memory_size = 1000
         self.memories = []
@@ -48,11 +48,11 @@ class DeepQ:
 
         model.add(Dense(self.output_dims, activation="linear"))
 
-        # lr_schedule = keras.optimizers.schedules.ExponentialDecay(
-        #     initial_learning_rate=self.learning_rate,
-        #     decay_steps=10000,
-        #     decay_rate=0.9,
-        # )
+        lr_schedule = keras.optimizers.schedules.ExponentialDecay(
+            initial_learning_rate=self.learning_rate,
+            decay_steps=10000,
+            decay_rate=0.9,
+        )
 
         model.compile(loss="mse", optimizer=Adam(learning_rate=self.learning_rate))
 
@@ -132,7 +132,7 @@ input_dims = len(env.observation_space)
 output_dims = env.action_space.n + 1
 
 # Create the agent
-agent = DeepQ(input_dims, output_dims, batch_size=64)
+agent = DeepQ(input_dims, output_dims, batch_size=128)
 
 # Define the number of episodes
 episodes = 100000
