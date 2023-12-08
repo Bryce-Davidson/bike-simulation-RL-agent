@@ -31,12 +31,12 @@ class DDQN:
         self.gamma = 0.99  # discount rate
         self.epsilon = 1  # initial exploration rate
         self.epsilon_min = 0.01  # minimum exploration rate
-        self.epsilon_decay = 0.99991  # exploration decay rate
+        self.epsilon_decay = 0.999995  # exploration decay rate
 
-        self.memory_size = 1000
+        self.memory_size = 2000
         self.memories = deque(maxlen=self.memory_size)
 
-        self.learning_rate = 0.001
+        self.learning_rate = 0.01
         self.model = self.build_model()
         self.target = keras.models.clone_model(self.model)
         self.replays = 0
@@ -44,13 +44,22 @@ class DDQN:
     def build_model(self):
         model = keras.models.Sequential()
 
-        model.add(Dense(200, input_dim=self.input_dims, activation="relu"))
+        model.add(Dense(500, input_dim=self.input_dims, activation="relu"))
 
-        model.add(Dense(200, activation="relu"))
+        model.add(Dense(500, activation="relu"))
+
+        model.add(Dense(500, activation="relu"))
 
         model.add(Dense(self.output_dims, activation="linear"))
 
-        model.compile(loss="mse", optimizer=Adam(learning_rate=self.learning_rate))
+        lr_schedule = keras.optimizers.schedules.ExponentialDecay(
+            initial_learning_rate=self.learning_rate,
+            decay_steps=5_000,
+            decay_rate=0.9,
+            staircase=True,
+        )
+
+        model.compile(loss="mse", optimizer=Adam(learning_rate=lr_schedule))
 
         return model
 
@@ -137,13 +146,11 @@ def reward_fn(state):
     ) = ghost_env.step(ghost_action)[0]
 
     if agent_percent_complete >= 1 and ghost_percent_complete < 1:
-        return 10000000
+        return 10000
 
     reward = -1
 
-    diff = agent_percent_complete - ghost_percent_complete
-
-    reward += diff * 10000 if diff > 0 else diff
+    reward += agent_percent_complete - ghost_percent_complete
 
     if agent_velocity < 0:
         reward -= 100
@@ -156,14 +163,14 @@ def reward_fn(state):
 
 # -------------------------TRAINING-----------------------------
 
-env = RiderEnv(gradient=testCourse, distance=distance, reward=reward_fn)
+env = RiderEnv(gradient=testCourse, distance=distance, reward=reward_fn, num_actions=50)
 
 # Define the input and output dimensions
 input_dims = len(env.observation_space)
 output_dims = env.action_space.n + 1
 
 # Create the agent
-agent = DDQN(input_dims, output_dims, target_replays=100, batch_size=64)
+agent = DDQN(input_dims, output_dims, target_replays=500, batch_size=128)
 
 # Define the number of episodes
 episodes = 100000
@@ -193,6 +200,7 @@ for e in range(0, episodes):
             json.dumps(
                 {
                     **next_info,
+                    "ghost_action": ghost_action,
                     "total_reward": total_reward,
                     "epsilon": agent.epsilon,
                     "replays": agent.replays,
