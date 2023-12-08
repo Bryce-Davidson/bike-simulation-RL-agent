@@ -4,6 +4,7 @@ import os
 # Add the parent directory to the path so we can import the libraries
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
+from collections import deque
 from lib.logs import write_row
 from lib.JsonEncoders import NpEncoder
 from env import RiderEnv
@@ -32,10 +33,12 @@ class DeepQ:
         self.epsilon_decay = 0.9999  # exploration decay rate
 
         self.memory_size = 1000
-        self.memories = []
+        self.memories = deque(maxlen=self.memory_size)
 
         self.learning_rate = 0.01
         self.model = self.build_model()
+        self.target = keras.models.clone_model(self.model)
+        self.steps = 0
 
     def build_model(self):
         model = keras.models.Sequential()
@@ -44,13 +47,11 @@ class DeepQ:
 
         model.add(Dense(100, activation="relu"))
 
-        model.add(Dense(100, activation="relu"))
-
         model.add(Dense(self.output_dims, activation="linear"))
 
         lr_schedule = keras.optimizers.schedules.ExponentialDecay(
             initial_learning_rate=self.learning_rate,
-            decay_steps=1000,
+            decay_steps=3000,
             decay_rate=0.9,
         )
 
@@ -58,15 +59,11 @@ class DeepQ:
 
         return model
 
-    def forget(self):
-        self.memories = []
-
     def remember(self, state, action, reward, next_state, terminated):
         self.memories.append((state, action, reward, next_state, terminated))
 
         if len(self.memories) > self.batch_size:
             self.replay()
-            self.memories.pop(0)
 
     def replay(self):
         batch = random.sample(self.memories, self.batch_size)
@@ -75,9 +72,12 @@ class DeepQ:
 
         states = np.array(states)
 
+        # Predict states using the current network
         currents = self.model.predict(states, verbose=0)
-        nexts = self.model.predict(np.array(next_states), verbose=0)
+        # Predict next states using the target network
+        nexts = self.target.predict(np.array(next_states), verbose=0)
 
+        # Update the current network with the new values
         for i, action in enumerate(actions):
             currents[i][action] = rewards[i]
 
@@ -86,6 +86,11 @@ class DeepQ:
 
         self.model.fit(states, currents, epochs=1, verbose=1)
 
+        # Update the target network every 100 steps
+        if self.steps % 100 == 0:
+            self.target.set_weights(self.model.get_weights())
+
+        # Update the epsilon value
         self.epsilon = max(self.epsilon_min, self.epsilon * self.epsilon_decay)
 
     def act(self, state):
