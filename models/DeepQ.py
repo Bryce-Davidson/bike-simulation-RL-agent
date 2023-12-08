@@ -26,10 +26,10 @@ class DeepQ:
         self.output_dims = output_dims
         self.batch_size = batch_size
 
-        self.gamma = 0.9  # discount rate
+        self.gamma = 0.1  # discount rate
         self.epsilon = 1  # initial exploration rate
-        self.epsilon_min = 0.01  # minimum exploration rate
-        self.epsilon_decay = 0.9999  # exploration decay rate
+        self.epsilon_min = 0.001  # minimum exploration rate
+        self.epsilon_decay = 0.999  # exploration decay rate
 
         self.memory_size = 1000
         self.memories = []
@@ -40,11 +40,13 @@ class DeepQ:
     def build_model(self):
         model = keras.models.Sequential()
 
-        model.add(Dense(500, input_dim=self.input_dims, activation="relu"))
+        model.add(Dense(200, input_dim=self.input_dims, activation="relu"))
 
-        model.add(Dense(500, activation="relu"))
+        model.add(Dense(200, activation="relu"))
 
-        model.add(Dense(500, activation="relu"))
+        model.add(Dense(200, activation="relu"))
+
+        model.add(Dense(200, activation="relu"))
 
         model.add(Dense(self.output_dims, activation="linear"))
 
@@ -54,7 +56,7 @@ class DeepQ:
             decay_rate=0.9,
         )
 
-        model.compile(loss="mse", optimizer=Adam(learning_rate=self.learning_rate))
+        model.compile(loss="mse", optimizer=Adam(learning_rate=lr_schedule))
 
         return model
 
@@ -136,9 +138,14 @@ def reward_fn(state):
     ) = ghost.step(10)[0]
 
     if ghost_percent_complete >= 1 and agent_percent_complete <= 1:
-        return -10000
+        return -100000
 
-    return (agent_percent_complete - ghost_percent_complete) * 100
+    reward = (agent_percent_complete - ghost_percent_complete) * 100
+
+    if agent_velocity < 0:
+        reward -= 10000
+
+    return reward
 
 
 # -------------------------TRAINING-----------------------------
