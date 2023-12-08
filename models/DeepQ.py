@@ -27,7 +27,7 @@ class DeepQ:
         self.gamma = 0.9  # discount rate
         self.epsilon = 1  # initial exploration rate
         self.epsilon_min = 0.01  # minimum exploration rate
-        self.epsilon_decay = 0.99999  # exploration decay rate
+        self.epsilon_decay = 0.995  # exploration decay rate
 
         self.memory_size = 1000
         self.memories = []
@@ -38,19 +38,18 @@ class DeepQ:
     def build_model(self):
         model = keras.models.Sequential()
 
-        model.add(Dense(200, input_dim=self.input_dims, activation="relu"))
+        model.add(Dense(500, input_dim=self.input_dims, activation="relu"))
 
-        model.add(Dense(200, activation="relu"))
+        model.add(Dense(500, activation="relu"))
 
-        model.add(Dense(200, activation="relu"))
+        model.add(Dense(500, activation="relu"))
 
         model.add(Dense(self.output_dims, activation="linear"))
 
         lr_schedule = keras.optimizers.schedules.ExponentialDecay(
             initial_learning_rate=self.learning_rate,
-            decay_steps=2000,
+            decay_steps=10000,
             decay_rate=0.9,
-            staircase=True,
         )
 
         model.compile(loss="mse", optimizer=Adam(learning_rate=self.learning_rate))
@@ -99,17 +98,6 @@ class DeepQ:
         self.model.save(filepath=f"./weights/{slug}.keras")
 
 
-def reward_fn(state):
-    power_max_w, velocity, gradient, percent_complete, AWC = state
-
-    reward = -1
-
-    if percent_complete >= 1:
-        reward += 1000000
-
-    return reward
-
-
 # -------------------------LOGS---------------------------------
 
 course = "testCourse"
@@ -121,8 +109,36 @@ slug = f"DQN-{distance}m-{course}-{datetime.datetime.now().strftime('%d-%m-%Y_%H
 
 log_slug = f"{log_path}/{slug}.csv"
 
-# -------------------------TRAINING-----------------------------
 
+# -------------------------REWARDS--------------------------
+
+ghost = RiderEnv(gradient=testCourse, distance=distance, reward=lambda x: 0)
+
+
+def reward_fn(state):
+    (
+        agent_power_max_w,
+        agent_velocity,
+        agent_gradient,
+        agent_percent_complete,
+        AWC,
+    ) = state
+
+    (
+        ghost_power_max_w,
+        ghost_velocity,
+        ghost_gradient,
+        ghost_percent_complete,
+        ghost_AWC,
+    ) = ghost.step(10)
+
+    if ghost_percent_complete >= 1 and agent_percent_complete <= 1:
+        return -1000000
+
+    return (agent_percent_complete - ghost_percent_complete) * 100
+
+
+# -------------------------TRAINING-----------------------------
 
 env = RiderEnv(gradient=testCourse, distance=distance, reward=reward_fn)
 
