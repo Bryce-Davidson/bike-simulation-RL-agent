@@ -30,7 +30,7 @@ class DeepQ:
         self.gamma = 0.9  # discount rate
         self.epsilon = 1  # initial exploration rate
         self.epsilon_min = 0.01  # minimum exploration rate
-        self.epsilon_decay = 0.9999  # exploration decay rate
+        self.epsilon_decay = 0.9995  # exploration decay rate
 
         self.memory_size = 1000
         self.memories = deque(maxlen=self.memory_size)
@@ -38,7 +38,7 @@ class DeepQ:
         self.learning_rate = 0.01
         self.model = self.build_model()
         self.target = keras.models.clone_model(self.model)
-        self.steps = 0
+        self.replays = 0
 
     def build_model(self):
         model = keras.models.Sequential()
@@ -87,7 +87,7 @@ class DeepQ:
         self.model.fit(states, currents, epochs=1, verbose=1)
 
         # Update the target network every 100 steps
-        if self.steps % 100 == 0:
+        if self.replays % 100 == 0:
             self.target.set_weights(self.model.get_weights())
 
         # Update the epsilon value
@@ -111,7 +111,7 @@ distance = 400
 
 log_path = f"../logs"
 
-slug = f"DQN-{distance}m-{course}-{datetime.datetime.now().strftime('%d-%m-%Y_%H:%M')}"
+slug = f"DDQN-{distance}m-{course}-{datetime.datetime.now().strftime('%d-%m-%Y_%H:%M')}"
 
 log_slug = f"{log_path}/{slug}.csv"
 
@@ -119,8 +119,6 @@ log_slug = f"{log_path}/{slug}.csv"
 # -------------------------REWARDS--------------------------
 
 ghost = RiderEnv(gradient=testCourse, distance=distance, reward=lambda x: 0)
-
-ghost.reset()
 
 
 def reward_fn(state):
@@ -145,7 +143,9 @@ def reward_fn(state):
 
     reward = -1
 
-    reward += agent_percent_complete - ghost_percent_complete
+    diff = agent_percent_complete - ghost_percent_complete
+
+    reward += diff if diff > 0 else diff * 1000
 
     if agent_velocity < 0:
         reward -= 100
@@ -165,10 +165,11 @@ input_dims = len(env.observation_space)
 output_dims = env.action_space.n + 1
 
 # Create the agent
-agent = DeepQ(input_dims, output_dims, batch_size=128)
+agent = DeepQ(input_dims, output_dims, batch_size=64)
 
 # Define the number of episodes
 episodes = 100000
+
 for e in range(0, episodes):
     ghost.reset()
     cur_state, cur_info = env.reset()
