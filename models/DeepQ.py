@@ -34,7 +34,7 @@ class DeepQ:
         self.memory_size = 1000
         self.memories = []
 
-        self.learning_rate = 0.001
+        self.learning_rate = 0.01
         self.model = self.build_model()
 
     def build_model(self):
