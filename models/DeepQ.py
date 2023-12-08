@@ -99,16 +99,6 @@ class DeepQ:
 
 
 def reward_fn(state):
-    """
-    state = [
-        power_max_w,
-        velocity,
-        gradient,
-        percent_complete,
-        AWC
-    ]
-    """
-
     power_max_w, velocity, gradient, percent_complete, AWC = state
 
     reward = -1
@@ -156,7 +146,7 @@ for e in range(0, episodes):
 
         total_reward += reward
 
-        agent.remember(cur_state, action, total_reward, next_state, terminated)
+        agent.remember(cur_state, action, reward, next_state, terminated)
 
         print(
             json.dumps(
