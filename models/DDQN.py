@@ -204,7 +204,6 @@ agent = DDQN(
 
 # Define the number of episodes
 episodes = 100000
-
 for e in range(0, episodes):
     ghost_env.reset()
     cur_state, cur_info = env.reset()
