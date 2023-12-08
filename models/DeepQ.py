@@ -32,7 +32,7 @@ class DeepQ:
         self.memory_size = 1000
         self.memories = []
 
-        self.learning_rate = 0.01
+        self.learning_rate = 0.001
         self.model = self.build_model()
 
     def build_model(self):
@@ -48,13 +48,13 @@ class DeepQ:
 
         model.add(Dense(self.output_dims, activation="linear"))
 
-        lr_schedule = keras.optimizers.schedules.ExponentialDecay(
-            initial_learning_rate=self.learning_rate,
-            decay_steps=10000,
-            decay_rate=0.9,
-        )
+        # lr_schedule = keras.optimizers.schedules.ExponentialDecay(
+        #     initial_learning_rate=self.learning_rate,
+        #     decay_steps=10000,
+        #     decay_rate=0.9,
+        # )
 
-        model.compile(loss="mse", optimizer=Adam(learning_rate=lr_schedule))
+        model.compile(loss="mse", optimizer=Adam(learning_rate=self.learning_rate))
 
         return model
 
@@ -106,7 +106,7 @@ def reward_fn(state):
     reward = -1
 
     if percent_complete >= 1:
-        reward += 10000
+        reward += 1000000
 
     return reward
 
