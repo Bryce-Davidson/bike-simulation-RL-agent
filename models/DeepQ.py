@@ -32,26 +32,23 @@ class DeepQ:
         self.memory_size = 1000
         self.memories = []
 
-        self.learning_rate = 0.001
+        self.learning_rate = 0.01
         self.model = self.build_model()
 
     def build_model(self):
         model = keras.models.Sequential()
 
-        model.add(Dense(500, input_dim=self.input_dims, activation="relu"))
+        model.add(Dense(24, input_dim=self.input_dims, activation="relu"))
 
-        model.add(Dense(500, activation="relu"))
-
-        model.add(Dense(500, activation="relu"))
-
-        model.add(Dense(500, activation="relu"))
+        model.add(Dense(24, activation="relu"))
 
         model.add(Dense(self.output_dims, activation="linear"))
 
         lr_schedule = keras.optimizers.schedules.ExponentialDecay(
             initial_learning_rate=self.learning_rate,
-            decay_steps=10000,
+            decay_steps=5000,
             decay_rate=0.9,
+            staircase=True,
         )
 
         model.compile(loss="mse", optimizer=Adam(learning_rate=self.learning_rate))
