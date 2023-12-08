@@ -29,7 +29,7 @@ class DeepQ:
         self.gamma = 0.1  # discount rate
         self.epsilon = 1  # initial exploration rate
         self.epsilon_min = 0.001  # minimum exploration rate
-        self.epsilon_decay = 0.9999  # exploration decay rate
+        self.epsilon_decay = 0.999999  # exploration decay rate
 
         self.memory_size = 1000
         self.memories = []
@@ -40,13 +40,13 @@ class DeepQ:
     def build_model(self):
         model = keras.models.Sequential()
 
-        model.add(Dense(200, input_dim=self.input_dims, activation="relu"))
+        model.add(Dense(500, input_dim=self.input_dims, activation="relu"))
 
-        model.add(Dense(200, activation="relu"))
+        model.add(Dense(500, activation="relu"))
 
-        model.add(Dense(200, activation="relu"))
+        model.add(Dense(500, activation="relu"))
 
-        model.add(Dense(200, activation="relu"))
+        model.add(Dense(500, activation="relu"))
 
         model.add(Dense(self.output_dims, activation="linear"))
 
