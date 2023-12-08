@@ -26,33 +26,29 @@ class DeepQ:
         self.output_dims = output_dims
         self.batch_size = batch_size
 
-        self.gamma = 0.1  # discount rate
+        self.gamma = 0.9  # discount rate
         self.epsilon = 1  # initial exploration rate
         self.epsilon_min = 0.001  # minimum exploration rate
-        self.epsilon_decay = 0.99999  # exploration decay rate
+        self.epsilon_decay = 0.999  # exploration decay rate
 
         self.memory_size = 1000
         self.memories = []
 
-        self.learning_rate = 0.001
+        self.learning_rate = 0.01
         self.model = self.build_model()
 
     def build_model(self):
         model = keras.models.Sequential()
 
-        model.add(Dense(500, input_dim=self.input_dims, activation="relu"))
+        model.add(Dense(200, input_dim=self.input_dims, activation="relu"))
 
-        model.add(Dense(500, activation="relu"))
-
-        model.add(Dense(500, activation="relu"))
-
-        model.add(Dense(500, activation="relu"))
+        model.add(Dense(200, activation="relu"))
 
         model.add(Dense(self.output_dims, activation="linear"))
 
         lr_schedule = keras.optimizers.schedules.ExponentialDecay(
             initial_learning_rate=self.learning_rate,
-            decay_steps=10000,
+            decay_steps=2000,
             decay_rate=0.9,
         )
 
@@ -138,20 +134,23 @@ def reward_fn(state):
     ) = ghost.step(10)[0]
 
     if ghost_percent_complete >= 1 and agent_percent_complete <= 1:
-        return -100
+        return -100, 1
 
     if agent_percent_complete >= 1 and ghost_percent_complete < 1:
-        return 1000
+        return 1000000, 0
 
-    reward = (agent_percent_complete - ghost_percent_complete) * 100
+    truncated = 0
+    reward = -1
+
+    reward += agent_percent_complete - ghost_percent_complete
 
     if agent_velocity < 0:
-        reward -= 100
+        reward -= 1000
 
     if agent_percent_complete >= 1:
         reward += 100
 
-    return reward
+    return reward, truncated
 
 
 # -------------------------TRAINING-----------------------------

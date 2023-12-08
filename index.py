@@ -4,7 +4,7 @@ import keras
 import time
 import json
 
-from courses import tenByOneKm, flat, rollingHills, shortTest
+from courses import testCourse
 from env import RiderEnv
 from lib.JsonEncoders import NpEncoder
 
@@ -14,16 +14,16 @@ DATA_DIR = "./data"
 # --------------------------------------------------------------
 
 
-MODEL_SLUG = "TDQN-1200m-shortTest-07-12-2023_01:30"
-course_name = "shortTest"
-distance = 1200
+MODEL_SLUG = "DQN-400m-testCourse-07-12-2023_17:30"
+course_name = "testCourse"
+distance = 400
 
 model = keras.models.load_model(f"{WEIGHTS_FOLDER_PATH}/{MODEL_SLUG}.keras")
 
 # --------------------------------------------------------------
 
 if __name__ == "__main__":
-    env = RiderEnv(gradient=shortTest, distance=distance, reward=lambda x: 0)
+    env = RiderEnv(gradient=testCourse, distance=distance, reward=lambda x: 0)
 
     data = []
 
