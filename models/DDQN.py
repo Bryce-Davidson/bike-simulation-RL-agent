@@ -22,10 +22,11 @@ np.set_printoptions(suppress=True)
 
 
 class DeepQ:
-    def __init__(self, input_dims, output_dims, batch_size=32):
+    def __init__(self, input_dims, output_dims, target_replays=100, batch_size=32):
         self.input_dims = input_dims
         self.output_dims = output_dims
         self.batch_size = batch_size
+        self.target_replays = target_replays
 
         self.gamma = 0.9  # discount rate
         self.epsilon = 1  # initial exploration rate
@@ -87,7 +88,7 @@ class DeepQ:
         self.model.fit(states, currents, epochs=1, verbose=1)
 
         # Update the target network every 100 steps
-        if self.replays % 100 == 0:
+        if self.replays % self.target_replays == 0:
             self.target.set_weights(self.model.get_weights())
 
         # Update the epsilon value
@@ -149,7 +150,7 @@ def reward_fn(state):
 
     diff = agent_percent_complete - ghost_percent_complete
 
-    reward += diff if diff > 0 else diff * 1000
+    reward += diff * 1000 if diff > 0 else diff
 
     if agent_velocity < 0:
         reward -= 100
