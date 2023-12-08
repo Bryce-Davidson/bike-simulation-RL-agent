@@ -38,18 +38,20 @@ class DeepQ:
     def build_model(self):
         model = keras.models.Sequential()
 
-        model.add(Dense(100, input_dim=self.input_dims, activation="relu"))
+        model.add(Dense(500, input_dim=self.input_dims, activation="relu"))
 
-        model.add(Dense(200, activation="relu"))
+        model.add(Dense(500, activation="relu"))
 
-        model.add(Dense(200, activation="relu"))
+        model.add(Dense(500, activation="relu"))
+
+        model.add(Dense(500, activation="relu"))
 
         model.add(Dense(self.output_dims, activation="linear"))
 
         lr_schedule = keras.optimizers.schedules.ExponentialDecay(
             initial_learning_rate=self.learning_rate,
             decay_steps=10000,
-            decay_rate=0.99,
+            decay_rate=0.9,
         )
 
         model.compile(loss="mse", optimizer=Adam(learning_rate=lr_schedule))
@@ -133,7 +135,7 @@ output_dims = env.action_space.n + 1
 agent = DeepQ(input_dims, output_dims, batch_size=64)
 
 # Define the number of episodes
-episodes = 10000
+episodes = 100000
 for e in range(0, episodes):
     cur_state, cur_info = env.reset()
 
