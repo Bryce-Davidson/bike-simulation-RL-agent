@@ -40,6 +40,7 @@ class DDQN:
     ):
         self.input_dims = input_dims
         self.output_dims = output_dims
+        self.dense_layers = dense_layers
         self.batch_size = batch_size
         self.target_replays = target_replays
 
@@ -144,6 +145,7 @@ log_slug = f"{log_path}/{slug}.csv"
 # -------------------------REWARDS--------------------------
 
 ghost_env = RiderEnv(gradient=testCourse, distance=distance, reward=lambda x: 0)
+ghost_action = 10
 
 
 def reward_fn(state):
@@ -161,7 +163,7 @@ def reward_fn(state):
         ghost_gradient,
         ghost_percent_complete,
         ghost_AWC,
-    ) = ghost_env.step(10)[0]
+    ) = ghost_env.step(ghost_action)[0]
 
     if agent_percent_complete >= 1 and ghost_percent_complete < 1:
         return 100000
@@ -215,6 +217,11 @@ for e in range(0, episodes):
     while True:
         print(f"---------Episode: {e+1}/{episodes}, Step: {env.step_count}-----------")
 
+        if ghost_env.gradient(ghost_env.cur_position) > 0:
+            ghost_action = 10
+        else:
+            ghost_action = 8
+
         action = agent.act(cur_state)
 
         next_state, reward, terminated, truncated, next_info = env.step(action)
@@ -227,6 +234,7 @@ for e in range(0, episodes):
             json.dumps(
                 {
                     **next_info,
+                    "ghost_action": ghost_action,
                     "total_reward": total_reward,
                     "epsilon": agent.epsilon,
                     "replays": agent.replays,
