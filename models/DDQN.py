@@ -22,40 +22,59 @@ np.set_printoptions(suppress=True)
 
 
 class DDQN:
-    def __init__(self, input_dims, output_dims, target_replays=100, batch_size=32):
+    def __init__(
+        self,
+        input_dims,
+        output_dims,
+        dense_layers=[200, 200, 200],
+        gamma=0.9,
+        epsilon_start=1,
+        epsilon_min=0.01,
+        epsilon_decay=0.999,
+        target_replays=100,
+        mempry_size=1000,
+        batch_size=32,
+        lr_start=0.01,
+        lr_decay=0.999,
+        lr_decay_steps=1000,
+    ):
         self.input_dims = input_dims
         self.output_dims = output_dims
         self.batch_size = batch_size
         self.target_replays = target_replays
 
-        self.gamma = 0.99  # discount rate
-        self.epsilon = 1  # initial exploration rate
-        self.epsilon_min = 0.01  # minimum exploration rate
-        self.epsilon_decay = 0.999995  # exploration decay rate
+        self.gamma = gamma  # discount rate
+        self.epsilon = epsilon_start  # exploration rate
+        self.epsilon_min = epsilon_min  # minimum exploration probability
+        self.epsilon_decay = epsilon_decay  # exploration decay rate
 
-        self.memory_size = 2000
+        self.memory_size = mempry_size
         self.memories = deque(maxlen=self.memory_size)
+        self.replays = 0
 
-        self.learning_rate = 0.01
+        self.lr_start = lr_start
+        self.lr_decay = lr_decay
+        self.lr_decay_steps = lr_decay_steps
         self.model = self.build_model()
         self.target = keras.models.clone_model(self.model)
-        self.replays = 0
 
     def build_model(self):
         model = keras.models.Sequential()
 
-        model.add(Dense(500, input_dim=self.input_dims, activation="relu"))
+        for i, layer in enumerate(self.dense_layers):
+            if i == 0:
+                model.add(Dense(layer, input_dim=self.input_dims, activation="relu"))
+            else:
+                model.add(Dense(layer, activation="relu"))
 
-        model.add(Dense(500, activation="relu"))
-
-        model.add(Dense(500, activation="relu"))
+            model.add(Dropout(0.2))
 
         model.add(Dense(self.output_dims, activation="linear"))
 
         lr_schedule = keras.optimizers.schedules.ExponentialDecay(
-            initial_learning_rate=self.learning_rate,
-            decay_steps=5_000,
-            decay_rate=0.9,
+            initial_learning_rate=self.lr_start,
+            decay_steps=self.lr_decay_steps,
+            decay_rate=self.lr_decay,
             staircase=True,
         )
 
@@ -125,7 +144,6 @@ log_slug = f"{log_path}/{slug}.csv"
 # -------------------------REWARDS--------------------------
 
 ghost_env = RiderEnv(gradient=testCourse, distance=distance, reward=lambda x: 0)
-ghost_action = 10
 
 
 def reward_fn(state):
@@ -143,10 +161,10 @@ def reward_fn(state):
         ghost_gradient,
         ghost_percent_complete,
         ghost_AWC,
-    ) = ghost_env.step(ghost_action)[0]
+    ) = ghost_env.step(10)[0]
 
     if agent_percent_complete >= 1 and ghost_percent_complete < 1:
-        return 10000
+        return 100000
 
     reward = -1
 
@@ -170,7 +188,21 @@ input_dims = len(env.observation_space)
 output_dims = env.action_space.n + 1
 
 # Create the agent
-agent = DDQN(input_dims, output_dims, target_replays=500, batch_size=128)
+agent = DDQN(
+    input_dims,
+    output_dims,
+    dense_layers=[200, 200, 200],
+    gamma=0.9,
+    epsilon_start=1,
+    epsilon_min=0.01,
+    epsilon_decay=0.9995,
+    target_replays=500,
+    mempry_size=10000,
+    batch_size=64,
+    lr_start=0.001,
+    lr_decay=0.9,
+    lr_decay_steps=5_000,
+)
 
 # Define the number of episodes
 episodes = 100000
@@ -182,11 +214,6 @@ for e in range(0, episodes):
     total_reward = 0
     while True:
         print(f"---------Episode: {e+1}/{episodes}, Step: {env.step_count}-----------")
-
-        if ghost_env.gradient(ghost_env.cur_position) > 0:
-            ghost_action = 10
-        else:
-            ghost_action = 8
 
         action = agent.act(cur_state)
 
@@ -200,7 +227,6 @@ for e in range(0, episodes):
             json.dumps(
                 {
                     **next_info,
-                    "ghost_action": ghost_action,
                     "total_reward": total_reward,
                     "epsilon": agent.epsilon,
                     "replays": agent.replays,
