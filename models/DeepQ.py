@@ -38,9 +38,11 @@ class DeepQ:
     def build_model(self):
         model = keras.models.Sequential()
 
-        model.add(Dense(24, input_dim=self.input_dims, activation="relu"))
+        model.add(Dense(200, input_dim=self.input_dims, activation="relu"))
 
-        model.add(Dense(24, activation="relu"))
+        model.add(Dense(200, activation="relu"))
+
+        model.add(Dense(200, activation="relu"))
 
         model.add(Dense(self.output_dims, activation="linear"))
 

@@ -1,0 +1,3 @@
+episode,epsilon,reward,steps,exit_reason
+0,1,999908,92,terminated
+1,0.9995301080837887,999917,83,terminated
