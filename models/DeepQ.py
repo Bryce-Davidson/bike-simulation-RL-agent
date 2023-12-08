@@ -28,27 +28,29 @@ class DeepQ:
 
         self.gamma = 0.9  # discount rate
         self.epsilon = 1  # initial exploration rate
-        self.epsilon_min = 0.001  # minimum exploration rate
-        self.epsilon_decay = 0.999  # exploration decay rate
+        self.epsilon_min = 0.01  # minimum exploration rate
+        self.epsilon_decay = 0.9999  # exploration decay rate
 
         self.memory_size = 1000
         self.memories = []
 
-        self.learning_rate = 0.01
+        self.learning_rate = 0.001
         self.model = self.build_model()
 
     def build_model(self):
         model = keras.models.Sequential()
 
-        model.add(Dense(200, input_dim=self.input_dims, activation="relu"))
+        model.add(Dense(100, input_dim=self.input_dims, activation="relu"))
 
-        model.add(Dense(200, activation="relu"))
+        model.add(Dense(100, activation="relu"))
+
+        model.add(Dense(100, activation="relu"))
 
         model.add(Dense(self.output_dims, activation="linear"))
 
         lr_schedule = keras.optimizers.schedules.ExponentialDecay(
             initial_learning_rate=self.learning_rate,
-            decay_steps=2000,
+            decay_steps=1000,
             decay_rate=0.9,
         )
 
@@ -112,7 +114,8 @@ log_slug = f"{log_path}/{slug}.csv"
 
 # -------------------------REWARDS--------------------------
 
-ghost = RiderEnv(gradient=testCourse, distance=distance, reward=lambda x: 0)
+ghost = RiderEnv(gradient=testCourse, distance=distance, reward=lambda x: (0, False))
+
 ghost.reset()
 
 
@@ -133,19 +136,16 @@ def reward_fn(state):
         ghost_AWC,
     ) = ghost.step(10)[0]
 
-    if ghost_percent_complete >= 1 and agent_percent_complete <= 1:
-        return -100, 1
-
     if agent_percent_complete >= 1 and ghost_percent_complete < 1:
-        return 1000000, 0
+        return 10000000, True
 
-    truncated = 0
+    truncated = False
     reward = -1
 
     reward += agent_percent_complete - ghost_percent_complete
 
     if agent_velocity < 0:
-        reward -= 1000
+        reward -= 100
 
     if agent_percent_complete >= 1:
         reward += 100
