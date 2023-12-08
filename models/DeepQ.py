@@ -138,12 +138,18 @@ def reward_fn(state):
     ) = ghost.step(10)[0]
 
     if ghost_percent_complete >= 1 and agent_percent_complete <= 1:
-        return -100000
+        return -100
+
+    if agent_percent_complete >= 1 and ghost_percent_complete < 1:
+        return 1000
 
     reward = (agent_percent_complete - ghost_percent_complete) * 100
 
     if agent_velocity < 0:
-        reward -= 10000
+        reward -= 100
+
+    if agent_percent_complete >= 1:
+        reward += 100
 
     return reward
 
