@@ -29,12 +29,12 @@ class DeepQ:
         self.gamma = 0.1  # discount rate
         self.epsilon = 1  # initial exploration rate
         self.epsilon_min = 0.001  # minimum exploration rate
-        self.epsilon_decay = 0.999  # exploration decay rate
+        self.epsilon_decay = 0.9999  # exploration decay rate
 
         self.memory_size = 1000
         self.memories = []
 
-        self.learning_rate = 0.01
+        self.learning_rate = 0.001
         self.model = self.build_model()
 
     def build_model(self):
