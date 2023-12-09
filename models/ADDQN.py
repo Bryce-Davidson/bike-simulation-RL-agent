@@ -225,16 +225,10 @@ for e in range(0, episodes):
     while True:
         print(f"---------Episode: {e}/{episodes}, Step: {env.step_count}-----------")
 
-        action = agent.act(cur_state, env.ghost_action)
-
-        next_state, reward, terminated, truncated, next_info = env.step(action)
-
-        total_reward += reward
-
         write_row(
-            path=f"./logs/{MODEL_SLUG}/actions.csv",
+            path=f"./trained/{MODEL_SLUG}/logs/actions.csv",
             data={
-                **next_info,
+                **cur_info,
                 "episode": e,
                 "action": action,
                 "ghost_action": env.ghost_action,
@@ -242,6 +236,12 @@ for e in range(0, episodes):
                 "total_reward": total_reward,
             },
         )
+
+        action = agent.act(cur_state, env.ghost_action)
+
+        next_state, reward, terminated, truncated, next_info = env.step(action)
+
+        total_reward += reward
 
         agent.remember(cur_state, action, reward, next_state, terminated or truncated)
 
@@ -262,13 +262,13 @@ for e in range(0, episodes):
         cur_state, cur_info = next_state, next_info
 
         if terminated or truncated:
-            if not os.path.exists("./weights"):
-                os.makedirs("./weights")
+            if not os.path.exists("./trained/"):
+                os.makedirs("./trained/")
 
-            agent.model.save(f"./weights/{MODEL_SLUG}.keras")
+            agent.model.save(f"./trained/{MODEL_SLUG}/weights.keras")
 
             write_row(
-                path=f"./logs/{MODEL_SLUG}/episodes.csv",
+                path=f"./trained/{MODEL_SLUG}/logs/episodes.csv",
                 data={
                     "episode": e,
                     "epsilon": agent.epsilon,

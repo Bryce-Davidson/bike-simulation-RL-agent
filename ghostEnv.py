@@ -112,7 +112,6 @@ class GhostEnv:
             raise ValueError(
                 f"Invalid action: {action}. Must be between 0 and {self.action_space}"
             )
-
         # Ghost step
         # -------------------------------------------------
         self.ghost_env.step(self.ghost_action)
@@ -204,6 +203,8 @@ class GhostEnv:
 
     def reset(self, start: int = None):
         self.ghost_env.reset()
+        self.ghost_action = self.ghost(self.ghost_env.state)
+
         self.step_count = 0
         self.cur_AWC_j = RIDER_AWC_j
         self.cur_velocity = 0
