@@ -27,12 +27,13 @@ class DDQN:
         input_dims,
         output_dims,
         dense_layers=[200, 200, 200],
+        dropout=0,
         gamma=0.9,
         epsilon_start=1,
         epsilon_min=0.01,
         epsilon_decay=0.999,
         target_life=100,
-        mempry_size=1000,
+        memory_size=10000,
         batch_size=32,
         lr_start=0.01,
         lr_decay=0.999,
@@ -41,6 +42,7 @@ class DDQN:
         self.input_dims = input_dims
         self.output_dims = output_dims
         self.dense_layers = dense_layers
+        self.dropout = dropout
         self.batch_size = batch_size
         self.target_replays = target_life
 
@@ -49,7 +51,7 @@ class DDQN:
         self.epsilon_min = epsilon_min  # minimum exploration probability
         self.epsilon_decay = epsilon_decay  # exploration decay rate
 
-        self.memory_size = mempry_size
+        self.memory_size = memory_size
         self.memories = deque(maxlen=self.memory_size)
         self.replays = 0
 
@@ -68,7 +70,7 @@ class DDQN:
             else:
                 model.add(Dense(layer, activation="relu"))
 
-            model.add(Dropout(0.2))
+            model.add(Dropout(self.dropout))
 
         model.add(Dense(self.output_dims, activation="linear"))
 
@@ -183,6 +185,7 @@ def reward_fn(state):
 
 # -------------------------TRAINING-----------------------------
 
+
 env = RiderEnv(gradient=testCourse, distance=distance, reward=reward_fn, num_actions=10)
 
 # Create the agent
@@ -190,12 +193,13 @@ agent = DDQN(
     input_dims=len(env.observation_space),
     output_dims=env.action_space.n + 1,
     dense_layers=[200, 200, 200],
+    dropout=0.2,
     gamma=0.5,
     epsilon_start=1,
     epsilon_min=0.01,
     epsilon_decay=0.9999,
     target_life=50,
-    mempry_size=10000,
+    memory_size=10000,
     batch_size=64,
     lr_start=0.001,
     lr_decay=0.9,
