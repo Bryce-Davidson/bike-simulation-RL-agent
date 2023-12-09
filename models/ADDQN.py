@@ -201,9 +201,9 @@ env = GhostEnv(
 agent = DDQN(
     input_dims=env.state.size,
     output_dims=env.action_space + 1,
-    dense_layers=[12, 12, 12],
+    dense_layers=[100, 100, 100],
     dropout=0.2,
-    gamma=0.9,
+    gamma=0.1,
     copy_ghost_replays=2000,
     epsilon_start=0.5,
     epsilon_decay=0.9999,
@@ -234,10 +234,12 @@ for e in range(0, episodes):
         write_row(
             path=f"./logs/{MODEL_SLUG}/actions.csv",
             data={
+                **next_info,
                 "episode": e,
+                "action": action,
+                "ghost_action": env.ghost_action,
                 "step": env.step_count,
                 "total_reward": total_reward,
-                **next_info,
             },
         )
 
@@ -247,6 +249,7 @@ for e in range(0, episodes):
             json.dumps(
                 {
                     **next_info,
+                    "ghost_action": env.ghost_action,
                     "total_reward": total_reward,
                     "replays": agent.replays,
                     "epsilon": agent.epsilon,
