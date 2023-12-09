@@ -1,0 +1,3 @@
+episode,epsilon,total_reward,steps,exit_reason
+0,1,-803.4118184623624,88,terminated
+1,0.9959081893501199,-292.45098849882885,81,terminated

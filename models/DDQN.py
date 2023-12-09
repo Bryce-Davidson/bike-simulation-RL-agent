@@ -169,12 +169,6 @@ def reward_fn(state):
         ghost_AWC,
     ) = ghost_env.step(ghost_action)[0]
 
-    if agent_percent_complete >= 1 and ghost_percent_complete < 1:
-        return 1000, False
-
-    if agent_percent_complete <= 1 and ghost_percent_complete >= 1:
-        return -1000, True
-
     reward = -1
 
     reward += agent_percent_complete - ghost_percent_complete
@@ -188,7 +182,7 @@ def reward_fn(state):
 # -------------------------TRAINING-----------------------------
 
 
-env = RiderEnv(gradient=testCourse, distance=distance, reward=reward_fn, num_actions=10)
+env = RiderEnv(gradient=testCourse, distance=distance, reward=reward_fn, num_actions=50)
 
 # Create the agent
 agent = DDQN(
@@ -196,14 +190,14 @@ agent = DDQN(
     output_dims=env.action_space.n + 1,
     dense_layers=[200, 200, 200],
     dropout=0.2,
-    gamma=0.5,
+    gamma=0.9,
     epsilon_start=1,
-    epsilon_min=0.01,
     epsilon_decay=0.9999,
-    target_life=50,
+    epsilon_min=0.01,
+    target_life=75,
     memory_size=10000,
-    batch_size=64,
-    lr_start=0.001,
+    batch_size=128,
+    lr_start=0.01,
     lr_decay=0.9,
     lr_decay_steps=5_000,
 )
