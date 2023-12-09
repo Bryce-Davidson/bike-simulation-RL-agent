@@ -35,6 +35,7 @@ class RiderEnv:
         gradient: Callable[[float], float],
         distance: int = 1000,
         num_actions: int = 10,
+        ghost=None,
     ):
         # Error handling
         # ---------------------------
@@ -47,6 +48,7 @@ class RiderEnv:
         # Environment variables
         # ---------------------------
         self.render_mode = None
+        self.ghost = ghost
 
         self.step_count = 0
         self.gradient = gradient
@@ -67,6 +69,7 @@ class RiderEnv:
                 Box(low=-100, high=100, shape=(1,), dtype=float),
                 Box(low=0, high=1, shape=(1,), dtype=float),
                 Box(low=RIDER_AWC_MIN, high=RIDER_AWC_MAX, shape=(1,), dtype=float),
+                Box(low=0, high=distance, shape=(1,), dtype=float),
             ]
         )
         self.action_space = Discrete(num_actions)
@@ -87,6 +90,7 @@ class RiderEnv:
                 self.gradient(self.cur_position),  # gradient
                 self.cur_position / self.COURSE_DISTANCE,  # percent_complete
                 self.cur_AWC_j,  # AWC
+                self.cur_position,  # position
             ]
         )
 

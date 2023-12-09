@@ -170,9 +170,10 @@ def reward_fn(state):
 
     reward = -1
 
-    diff = agent_percent_complete - ghost_percent_complete
+    if agent_percent_complete >= 1 and ghost_percent_complete <= 1:
+        reward += 10000
 
-    reward += diff * 100 if diff > 0 else diff
+    reward += (agent_percent_complete - ghost_percent_complete) * 100
 
     if agent_velocity < 0:
         reward -= 100
@@ -191,16 +192,16 @@ agent = DDQN(
     output_dims=env.action_space.n + 1,
     dense_layers=[200, 200, 200],
     dropout=0.2,
-    gamma=0.5,
+    gamma=0.1,
     epsilon_start=1,
     epsilon_decay=0.9999,
     epsilon_min=0.01,
     target_life=100,
     memory_size=20000,
-    batch_size=128,
-    lr_start=0.001,
-    lr_decay=0.1,
-    lr_decay_steps=5000,
+    batch_size=64,
+    lr_start=0.1,
+    lr_decay=0.9,
+    lr_decay_steps=1000,
 )
 
 # Define the number of episodes
@@ -221,6 +222,9 @@ for e in range(0, episodes):
         action = agent.act(cur_state)
 
         next_state, reward, terminated, truncated, next_info = env.step(action)
+
+        if reward > 0:
+            print("Reward: ", reward)
 
         total_reward += reward
 
