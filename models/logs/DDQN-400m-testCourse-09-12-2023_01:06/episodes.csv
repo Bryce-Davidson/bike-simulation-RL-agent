@@ -4,3 +4,4 @@ episode,epsilon,total_reward,steps,exit_reason
 2,0.8235779600286178,-784,84,terminated
 3,0.759467619567903,-481,81,terminated
 4,0.6968531211932361,-586,86,terminated
+5,0.6355740637310745,-692,92,terminated
