@@ -13,8 +13,7 @@ DATA_DIR = "./data"
 
 # --------------------------------------------------------------
 
-
-MODEL_SLUG = "DQN-400m-testCourse-07-12-2023_17:30"
+MODEL_SLUG = "DDQN-400m-testCourse-08-12-2023_15:55"
 course_name = "testCourse"
 distance = 400
 
@@ -23,13 +22,14 @@ model = keras.models.load_model(f"{WEIGHTS_FOLDER_PATH}/{MODEL_SLUG}.keras")
 # --------------------------------------------------------------
 
 if __name__ == "__main__":
-    env = RiderEnv(gradient=testCourse, distance=distance, reward=lambda x: 0)
+    env = RiderEnv(
+        gradient=testCourse, distance=distance, reward=lambda x: (0, x[3] >= 1)
+    )
 
     data = []
 
     state, info = env.reset()
-
-    while env.cur_position < env.COURSE_DISTANCE:
+    while True:
         state = np.array([state])
 
         action = np.argmax(model.predict(state, verbose=0)[0])

@@ -146,7 +146,9 @@ log_slug = f"{log_path}/{slug}.csv"
 
 # -------------------------REWARDS--------------------------
 
-ghost_env = RiderEnv(gradient=testCourse, distance=distance, reward=lambda x: 0)
+ghost_env = RiderEnv(
+    gradient=testCourse, distance=distance, reward=lambda x: (0, False)
+)
 ghost_action = 10
 
 
@@ -168,7 +170,10 @@ def reward_fn(state):
     ) = ghost_env.step(ghost_action)[0]
 
     if agent_percent_complete >= 1 and ghost_percent_complete < 1:
-        return 100000
+        return 100000, False
+
+    if agent_percent_complete <= 1 and ghost_percent_complete >= 1:
+        return -100000, True
 
     reward = -1
 
@@ -180,7 +185,7 @@ def reward_fn(state):
     if agent_percent_complete >= 1:
         reward += 100
 
-    return reward
+    return reward, False
 
 
 # -------------------------TRAINING-----------------------------
@@ -227,7 +232,7 @@ for e in range(0, episodes):
 
         total_reward += reward
 
-        agent.remember(cur_state, action, reward, next_state, terminated)
+        agent.remember(cur_state, action, reward, next_state, terminated or truncated)
 
         print(
             json.dumps(
@@ -252,7 +257,7 @@ for e in range(0, episodes):
                 {
                     "episode": e,
                     "epsilon": agent.epsilon,
-                    "reward": total_reward,
+                    "total_reward": total_reward,
                     "steps": env.step_count,
                     "exit_reason": "terminated" if terminated else "truncated",
                 },
