@@ -77,13 +77,13 @@ class RiderEnv:
         )
 
     def info(self, meta: dict = {}) -> dict:
-        state = self.state
+        power_max_w, velocity, gradient, percent_complete, AWC = self.state
         return {
-            "power_max_w": state[0],
-            "velocity": state[1],
-            "gradient": state[2],
-            "percent_complete": state[3],
-            "AWC": state[4],
+            "power_max_w": power_max_w,
+            "velocity": velocity,
+            "gradient": gradient,
+            "percent_complete": percent_complete,
+            "AWC": AWC,
             **meta,
         }
 

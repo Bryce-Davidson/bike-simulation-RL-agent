@@ -100,6 +100,7 @@ class GhostEnv:
             "gradient": state[2],
             "percent_complete": state[3],
             "AWC": state[4],
+            "ghost_percent_complete": state[8],
             **meta,
         }
 

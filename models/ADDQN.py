@@ -220,9 +220,6 @@ episodes = 100000
 for e in range(0, episodes):
     cur_state, cur_info = env.reset()
 
-    if e % 10 == 0 and e > 0:
-        agent.epsilon = 1
-
     total_reward = 0
     while True:
         print(f"---------Episode: {e}/{episodes}, Step: {env.step_count}-----------")
