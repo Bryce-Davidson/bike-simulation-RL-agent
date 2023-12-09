@@ -135,10 +135,10 @@ class DDQN:
 course = "testCourse"
 distance = 400
 
-log_path = f"./logs"
+TRAINED_PATH = f"./trained"
 
 MODEL_SLUG = (
-    f"DDQN-{distance}m-{course}-{datetime.datetime.now().strftime('%d-%m-%Y_%H:%M')}"
+    f"ADDQN-{distance}m-{course}-{datetime.datetime.now().strftime('%d-%m-%Y_%H:%M')}"
 )
 
 # -------------------------REWARDS--------------------------
@@ -205,12 +205,12 @@ for e in range(0, episodes):
         total_reward += reward
 
         write_row(
-            path=f"./logs/{MODEL_SLUG}/actions.csv",
+            path=f"{TRAINED_PATH}/{MODEL_SLUG}/logs/actions.csv",
             data={
+                **next_info,
                 "episode": e,
-                "step": env.step_count,
                 "action": action,
-                "reward": reward,
+                "step": env.step_count,
                 "total_reward": total_reward,
             },
         )
@@ -233,10 +233,13 @@ for e in range(0, episodes):
         cur_state, cur_info = next_state, next_info
 
         if terminated or truncated:
-            agent.model.save(f"./weights/{MODEL_SLUG}.keras")
+            if not os.path.exists(TRAINED_PATH):
+                os.makedirs(TRAINED_PATH)
+
+            agent.model.save(f"{TRAINED_PATH}/{MODEL_SLUG}/weights.keras")
 
             write_row(
-                path=f"./logs/{MODEL_SLUG}/episodes.csv",
+                path=f"{TRAINED_PATH}/{MODEL_SLUG}/logs/episodes.csv",
                 data={
                     "episode": e,
                     "epsilon": agent.epsilon,
