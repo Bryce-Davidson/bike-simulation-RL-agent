@@ -171,7 +171,9 @@ def reward_fn(state):
 
     reward = -1
 
-    reward += agent_percent_complete - ghost_percent_complete
+    diff = agent_percent_complete - ghost_percent_complete
+
+    reward += diff * 100 if diff > 0 else diff
 
     if agent_velocity < 0:
         reward -= 100
@@ -192,10 +194,10 @@ agent = DDQN(
     dropout=0.2,
     gamma=0.5,
     epsilon_start=1,
-    epsilon_decay=0.9999,
+    epsilon_decay=0.999,
     epsilon_min=0.01,
-    target_life=75,
-    memory_size=20000,
+    target_life=50,
+    memory_size=10000,
     batch_size=64,
     lr_start=0.001,
     lr_decay=0.9,
