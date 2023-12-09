@@ -201,19 +201,19 @@ env = GhostEnv(
 agent = DDQN(
     input_dims=env.state.size,
     output_dims=env.action_space + 1,
-    dense_layers=[100, 100, 100],
+    dense_layers=[24, 24, 24],
     dropout=0.2,
-    gamma=0.1,
-    copy_ghost_replays=2000,
+    gamma=0.9,
+    copy_ghost_replays=1000,
     epsilon_start=0.5,
     epsilon_decay=0.9999,
     epsilon_min=0.01,
-    target_replays=50,
+    target_replays=100,
     memory_size=20000,
     batch_size=64,
     lr_start=0.01,
     lr_decay=0.9,
-    lr_decay_steps=2_000,
+    lr_decay_steps=1_000,
 )
 
 # Define the number of episodes
