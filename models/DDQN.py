@@ -170,10 +170,10 @@ def reward_fn(state):
     ) = ghost_env.step(ghost_action)[0]
 
     if agent_percent_complete >= 1 and ghost_percent_complete < 1:
-        return 100000, False
+        return 1000, False
 
     if agent_percent_complete <= 1 and ghost_percent_complete >= 1:
-        return -100000, True
+        return -1000, True
 
     reward = -1
 
@@ -181,9 +181,6 @@ def reward_fn(state):
 
     if agent_velocity < 0:
         reward -= 100
-
-    if agent_percent_complete >= 1:
-        reward += 100
 
     return reward, False
 
