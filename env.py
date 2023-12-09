@@ -101,7 +101,7 @@ class RiderEnv:
         self.step_count += 1
 
         # Normalize action
-        action = action / self.action_space.n
+        action = action / self.action_space
 
         # Physiological calculations
         # -------------------------------------------------
