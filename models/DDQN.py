@@ -182,7 +182,7 @@ def reward_fn(state):
 # -------------------------TRAINING-----------------------------
 
 
-env = RiderEnv(gradient=testCourse, distance=distance, reward=reward_fn, num_actions=50)
+env = RiderEnv(gradient=testCourse, distance=distance, reward=reward_fn, num_actions=10)
 
 # Create the agent
 agent = DDQN(
