@@ -199,20 +199,20 @@ env = GhostEnv(
 
 # Create the agent
 agent = DDQN(
-    input_dims=len(env.state),
+    input_dims=env.state.size,
     output_dims=env.action_space + 1,
     dense_layers=[200, 200, 200],
     dropout=0.2,
-    gamma=0.9,
+    gamma=0.1,
     epsilon_start=1,
-    epsilon_decay=0.99,
+    epsilon_decay=0.9999,
     epsilon_min=0.01,
     target_life=100,
     memory_size=20000,
     batch_size=64,
-    lr_start=0.1,
+    lr_start=0.01,
     lr_decay=0.9,
-    lr_decay_steps=100,
+    lr_decay_steps=1000,
 )
 
 # Define the number of episodes
