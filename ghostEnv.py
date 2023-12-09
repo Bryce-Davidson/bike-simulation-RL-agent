@@ -58,6 +58,7 @@ class GhostEnv:
             distance=distance,
             num_actions=num_actions,
         )
+        self.ghost_action = self.ghost(self.ghost_env.state)
 
         self.step_count = 0
         self.gradient = gradient
@@ -114,8 +115,8 @@ class GhostEnv:
 
         # Ghost step
         # -------------------------------------------------
-        ghost_action = self.ghost(self.ghost_env.state)
-        self.ghost_env.step(ghost_action)
+        self.ghost_action = self.ghost(self.ghost_env.state)
+        self.ghost_env.step(self.ghost_action)
 
         # Normalize action
         action = action / self.action_space

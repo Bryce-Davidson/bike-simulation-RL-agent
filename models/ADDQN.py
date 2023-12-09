@@ -160,15 +160,10 @@ def reward_fn(state):
 
     reward = -1
 
-    diff = agent_percent_complete - ghost_percent_complete
+    reward += agent_percent_complete - ghost_percent_complete
 
-    reward += diff
-
-    if diff > 0:
+    if agent_percent_complete >= 1 and ghost_percent_complete < 1:
         reward += 100
-
-    if agent_velocity < 0:
-        reward -= 100
 
     return reward
 
@@ -176,7 +171,7 @@ def reward_fn(state):
 # -------------------------TRAINING-----------------------------
 
 
-def ghostRider(state):
+def ghostRider(state) -> int:
     (
         ghost_power_max_w,
         ghost_velocity,
@@ -186,9 +181,9 @@ def ghostRider(state):
     ) = state
 
     if ghost_gradient <= 0:
-        return 50
+        return 10
     else:
-        return 50 * 0.8
+        return 8
 
 
 env = GhostEnv(
@@ -196,25 +191,25 @@ env = GhostEnv(
     gradient=testCourse,
     distance=distance,
     reward=reward_fn,
-    num_actions=50,
+    num_actions=10,
 )
 
 # Create the agent
 agent = DDQN(
     input_dims=env.state.size,
     output_dims=env.action_space + 1,
-    dense_layers=[200, 200, 200],
-    dropout=0.2,
-    gamma=0.1,
+    dense_layers=[24, 24, 24],
+    dropout=0.1,
+    gamma=0.9,
     epsilon_start=1,
     epsilon_decay=0.9999,
     epsilon_min=0.01,
-    target_life=100,
+    target_life=50,
     memory_size=20000,
     batch_size=64,
-    lr_start=0.001,
+    lr_start=0.01,
     lr_decay=0.9,
-    lr_decay_steps=5_000,
+    lr_decay_steps=2_000,
 )
 
 # Define the number of episodes

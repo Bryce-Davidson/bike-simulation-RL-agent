@@ -172,9 +172,9 @@ env = RiderEnv(gradient=testCourse, distance=distance, reward=reward_fn, num_act
 agent = DDQN(
     input_dims=len(env.state),
     output_dims=env.action_space + 1,
-    dense_layers=[200, 200, 200],
+    dense_layers=[24, 24],
     dropout=0.2,
-    gamma=0.9,
+    gamma=0.5,
     epsilon_start=1,
     epsilon_decay=0.99,
     epsilon_min=0.01,
