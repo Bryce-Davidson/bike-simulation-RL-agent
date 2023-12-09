@@ -20,6 +20,9 @@ import json
 
 np.set_printoptions(suppress=True)
 
+# Set the random seed for reproducibility
+random.seed(0)
+
 
 class DDQN:
     def __init__(
@@ -27,18 +30,18 @@ class DDQN:
         input_dims,
         output_dims,
         dense_layers=[200, 200, 200],
-        dropout=0,
+        dropout=0.2,
         gamma=0.9,
-        copy_ghost_replays=1000,
-        epsilon_start=1,
+        copy_ghost_replays=0,
+        epsilon_start=0.5,
         epsilon_min=0.01,
         epsilon_decay=0.999,
         target_replays=100,
         memory_size=10000,
-        batch_size=32,
+        batch_size=64,
         lr_start=0.01,
-        lr_decay=0.999,
-        lr_decay_steps=1000,
+        lr_decay=0.9,
+        lr_decay_steps=3000,
     ):
         self.input_dims = input_dims
         self.output_dims = output_dims
@@ -168,6 +171,12 @@ def reward_fn(state):
 
     reward += agent_percent_complete - ghost_percent_complete
 
+    if agent_percent_complete >= 1 and ghost_percent_complete < 1:
+        reward += 1000
+
+    if agent_velocity < 0:
+        reward -= 100
+
     return reward
 
 
@@ -204,7 +213,7 @@ agent = DDQN(
     dense_layers=[24, 24, 24],
     dropout=0.2,
     gamma=0.9,
-    copy_ghost_replays=1000,
+    copy_ghost_replays=0,
     epsilon_start=0.5,
     epsilon_decay=0.9999,
     epsilon_min=0.01,
@@ -213,7 +222,7 @@ agent = DDQN(
     batch_size=64,
     lr_start=0.01,
     lr_decay=0.9,
-    lr_decay_steps=1_000,
+    lr_decay_steps=2_000,
 )
 
 # Define the number of episodes

@@ -20,6 +20,9 @@ import json
 
 np.set_printoptions(suppress=True)
 
+# Set the random seed for reproducibility
+random.seed(0)
+
 
 class DDQN:
     def __init__(
