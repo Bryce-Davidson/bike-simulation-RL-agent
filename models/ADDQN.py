@@ -28,8 +28,8 @@ class DDQN:
         output_dims,
         dense_layers=[200, 200, 200],
         dropout=0,
-        copy_replays=1000,
         gamma=0.9,
+        copy_ghost_replays=1000,
         epsilon_start=1,
         epsilon_min=0.01,
         epsilon_decay=0.999,
@@ -47,7 +47,7 @@ class DDQN:
         self.batch_size = batch_size
         self.target_replays = target_replays
 
-        self.copy_replays = copy_replays
+        self.copy_ghost_replays = copy_ghost_replays
         self.gamma = gamma  # discount rate
         self.epsilon = epsilon_start  # exploration rate
         self.epsilon_min = epsilon_min  # minimum exploration probability
@@ -119,14 +119,14 @@ class DDQN:
             self.target.set_weights(self.model.get_weights())
 
         # Update the epsilon value
-        if self.replays >= self.copy_replays:
+        if self.replays >= self.copy_ghost_replays:
             self.epsilon = max(self.epsilon_min, self.epsilon * self.epsilon_decay)
 
         # Increment the number of replays
         self.replays += 1
 
     def act(self, state, ghost_action):
-        if self.replays < self.copy_replays:
+        if self.replays < self.copy_ghost_replays:
             return ghost_action
 
         if np.random.rand() <= self.epsilon:
@@ -168,9 +168,6 @@ def reward_fn(state):
 
     reward += agent_percent_complete - ghost_percent_complete
 
-    if agent_percent_complete >= 1 and ghost_percent_complete < 1:
-        reward += 100
-
     return reward
 
 
@@ -204,11 +201,11 @@ env = GhostEnv(
 agent = DDQN(
     input_dims=env.state.size,
     output_dims=env.action_space + 1,
-    dense_layers=[24, 24, 24],
-    dropout=0.1,
-    copy_replays=1000,
+    dense_layers=[12, 12, 12],
+    dropout=0.2,
     gamma=0.9,
-    epsilon_start=1,
+    copy_ghost_replays=2000,
+    epsilon_start=0.5,
     epsilon_decay=0.9999,
     epsilon_min=0.01,
     target_replays=50,
@@ -239,9 +236,8 @@ for e in range(0, episodes):
             data={
                 "episode": e,
                 "step": env.step_count,
-                "action": action,
-                "reward": reward,
                 "total_reward": total_reward,
+                **next_info,
             },
         )
 
@@ -252,8 +248,8 @@ for e in range(0, episodes):
                 {
                     **next_info,
                     "total_reward": total_reward,
-                    "epsilon": agent.epsilon,
                     "replays": agent.replays,
+                    "epsilon": agent.epsilon,
                 },
                 indent=4,
                 cls=NpEncoder,

@@ -95,9 +95,6 @@ class RiderEnv:
                 f"Invalid action: {action}. Must be between 0 and {self.action_space}"
             )
 
-        # Step count
-        self.step_count += 1
-
         # Normalize action
         action = action / self.action_space
 
@@ -176,6 +173,9 @@ class RiderEnv:
                 "reward": reward,
             }
         )
+
+        # Step count
+        self.step_count += 1
 
         return self.state, reward, terminated, truncated, info
 
