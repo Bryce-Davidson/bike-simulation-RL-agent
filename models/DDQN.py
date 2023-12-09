@@ -129,26 +129,19 @@ class DDQN:
         state = np.array([state])
         return np.argmax(self.model.predict(state, verbose=0)[0])
 
-    def save(self, slug):
-        self.model.save(filepath=f"./weights/{slug}.keras")
-
 
 # -------------------------LOGS---------------------------------
 
 course = "testCourse"
 distance = 400
 
-log_path = f"../logs"
+log_path = f"./logs"
 
-slug = f"DDQN-{distance}m-{course}-{datetime.datetime.now().strftime('%d-%m-%Y_%H:%M')}"
-
-log_slug = f"{log_path}/{slug}.csv"
-
+MODEL_SLUG = (
+    f"DDQN-{distance}m-{course}-{datetime.datetime.now().strftime('%d-%m-%Y_%H:%M')}"
+)
 
 # -------------------------REWARDS--------------------------
-
-ghost_env = RiderEnv(gradient=testCourse, distance=distance, reward=lambda x: 0)
-ghost_action = 10
 
 
 def reward_fn(state):
@@ -160,20 +153,7 @@ def reward_fn(state):
         AWC,
     ) = state
 
-    (
-        ghost_power_max_w,
-        ghost_velocity,
-        ghost_gradient,
-        ghost_percent_complete,
-        ghost_AWC,
-    ) = ghost_env.step(ghost_action)[0]
-
     reward = -1
-
-    if agent_percent_complete >= 1 and ghost_percent_complete <= 1:
-        reward += 10000
-
-    reward += (agent_percent_complete - ghost_percent_complete) * 100
 
     if agent_velocity < 0:
         reward -= 100
@@ -183,13 +163,12 @@ def reward_fn(state):
 
 # -------------------------TRAINING-----------------------------
 
-
 env = RiderEnv(gradient=testCourse, distance=distance, reward=reward_fn, num_actions=10)
 
 # Create the agent
 agent = DDQN(
-    input_dims=len(env.observation_space),
-    output_dims=env.action_space.n + 1,
+    input_dims=len(env.state),
+    output_dims=env.action_space + 1,
     dense_layers=[200, 200, 200],
     dropout=0.2,
     gamma=0.1,
@@ -207,26 +186,28 @@ agent = DDQN(
 # Define the number of episodes
 episodes = 100000
 for e in range(0, episodes):
-    ghost_env.reset()
     cur_state, cur_info = env.reset()
 
     total_reward = 0
     while True:
         print(f"---------Episode: {e+1}/{episodes}, Step: {env.step_count}-----------")
 
-        if ghost_env.gradient(ghost_env.cur_position) >= 0:
-            ghost_action = 10
-        else:
-            ghost_action = 8
-
         action = agent.act(cur_state)
 
         next_state, reward, terminated, truncated, next_info = env.step(action)
 
-        if reward > 0:
-            print("Reward: ", reward)
-
         total_reward += reward
+
+        write_row(
+            path=f"./logs/{MODEL_SLUG}/actions.csv",
+            data={
+                "episode": e,
+                "step": env.step_count,
+                "action": action,
+                "reward": reward,
+                "total_reward": total_reward,
+            },
+        )
 
         agent.remember(cur_state, action, reward, next_state, terminated or truncated)
 
@@ -234,7 +215,6 @@ for e in range(0, episodes):
             json.dumps(
                 {
                     **next_info,
-                    "ghost_action": ghost_action,
                     "total_reward": total_reward,
                     "epsilon": agent.epsilon,
                     "replays": agent.replays,
@@ -247,10 +227,11 @@ for e in range(0, episodes):
         cur_state, cur_info = next_state, next_info
 
         if terminated or truncated:
-            agent.save(slug)
+            agent.model.save(f"./weights/{MODEL_SLUG}.keras")
+
             write_row(
-                log_slug,
-                {
+                path=f"./logs/{MODEL_SLUG}/episodes.csv",
+                data={
                     "episode": e,
                     "epsilon": agent.epsilon,
                     "total_reward": total_reward,

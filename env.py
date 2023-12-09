@@ -57,22 +57,7 @@ class RiderEnv:
 
         # State/Action spaces
         # ---------------------------
-        self.observation_space = Tuple(
-            [
-                Box(low=RIDER_POWER_MIN, high=RIDER_POWER_MAX, shape=(1,), dtype=float),
-                Box(
-                    low=RIDER_VELOCITY_MIN,
-                    high=RIDER_VELOCITY_MAX,
-                    shape=(1,),
-                    dtype=float,
-                ),
-                Box(low=-100, high=100, shape=(1,), dtype=float),
-                Box(low=0, high=1, shape=(1,), dtype=float),
-                Box(low=RIDER_AWC_MIN, high=RIDER_AWC_MAX, shape=(1,), dtype=float),
-                Box(low=0, high=distance, shape=(1,), dtype=float),
-            ]
-        )
-        self.action_space = Discrete(num_actions)
+        self.action_space = num_actions
         self.reward = reward
 
         # Agent variables
@@ -90,7 +75,6 @@ class RiderEnv:
                 self.gradient(self.cur_position),  # gradient
                 self.cur_position / self.COURSE_DISTANCE,  # percent_complete
                 self.cur_AWC_j,  # AWC
-                self.cur_position,  # position
             ]
         )
 
@@ -108,8 +92,10 @@ class RiderEnv:
     def step(self, action: int):
         # Error handling
         # -------------------------------------------------
-        if self.action_space.n < action < 0:
-            raise ValueError("Invalid action")
+        if self.action_space < action < 0:
+            raise ValueError(
+                f"Invalid action: {action}. Must be between 0 and {self.action_space}"
+            )
 
         # Step count
         self.step_count += 1
