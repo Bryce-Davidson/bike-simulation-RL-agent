@@ -44,7 +44,7 @@ class DDQN:
         self.dense_layers = dense_layers
         self.dropout = dropout
         self.batch_size = batch_size
-        self.target_replays = target_life
+        self.target_life = target_life
 
         self.gamma = gamma  # discount rate
         self.epsilon = epsilon_start  # exploration rate
@@ -70,7 +70,8 @@ class DDQN:
             else:
                 model.add(Dense(layer, activation="relu"))
 
-            model.add(Dropout(self.dropout))
+            if self.dropout > 0:
+                model.add(Dropout(self.dropout))
 
         model.add(Dense(self.output_dims, activation="linear"))
 
@@ -112,7 +113,7 @@ class DDQN:
         self.model.fit(states, currents, epochs=1, verbose=1)
 
         # Update the target network every 100 steps
-        if self.replays % self.target_replays == 0:
+        if self.replays % self.target_life == 0:
             self.target.set_weights(self.model.get_weights())
 
         # Update the epsilon value
@@ -146,9 +147,7 @@ log_slug = f"{log_path}/{slug}.csv"
 
 # -------------------------REWARDS--------------------------
 
-ghost_env = RiderEnv(
-    gradient=testCourse, distance=distance, reward=lambda x: (0, False)
-)
+ghost_env = RiderEnv(gradient=testCourse, distance=distance, reward=lambda x: 0)
 ghost_action = 10
 
 
@@ -178,7 +177,7 @@ def reward_fn(state):
     if agent_velocity < 0:
         reward -= 100
 
-    return reward, False
+    return reward
 
 
 # -------------------------TRAINING-----------------------------
@@ -194,14 +193,14 @@ agent = DDQN(
     dropout=0.2,
     gamma=0.5,
     epsilon_start=1,
-    epsilon_decay=0.999,
+    epsilon_decay=0.9999,
     epsilon_min=0.01,
-    target_life=50,
-    memory_size=10000,
-    batch_size=64,
+    target_life=100,
+    memory_size=20000,
+    batch_size=128,
     lr_start=0.001,
-    lr_decay=0.9,
-    lr_decay_steps=5_000,
+    lr_decay=0.1,
+    lr_decay_steps=5000,
 )
 
 # Define the number of episodes
@@ -214,7 +213,7 @@ for e in range(0, episodes):
     while True:
         print(f"---------Episode: {e+1}/{episodes}, Step: {env.step_count}-----------")
 
-        if ghost_env.gradient(ghost_env.cur_position) > 0:
+        if ghost_env.gradient(ghost_env.cur_position) >= 0:
             ghost_action = 10
         else:
             ghost_action = 8

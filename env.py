@@ -170,8 +170,9 @@ class RiderEnv:
         # Rewards and termination
         # -----------------------
         terminated = 0
+        truncated = 0
 
-        reward, truncated = self.reward(self.state)
+        reward = self.reward(self.state)
 
         if self.cur_position >= self.COURSE_DISTANCE:
             terminated = 1
