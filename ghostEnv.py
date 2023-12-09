@@ -115,8 +115,8 @@ class GhostEnv:
 
         # Ghost step
         # -------------------------------------------------
-        self.ghost_action = self.ghost(self.ghost_env.state)
         self.ghost_env.step(self.ghost_action)
+        self.ghost_action = self.ghost(self.ghost_env.state)
 
         # Normalize action
         action = action / self.action_space

@@ -28,11 +28,12 @@ class DDQN:
         output_dims,
         dense_layers=[200, 200, 200],
         dropout=0,
+        copy_replays=1000,
         gamma=0.9,
         epsilon_start=1,
         epsilon_min=0.01,
         epsilon_decay=0.999,
-        target_life=100,
+        target_replays=100,
         memory_size=10000,
         batch_size=32,
         lr_start=0.01,
@@ -44,8 +45,9 @@ class DDQN:
         self.dense_layers = dense_layers
         self.dropout = dropout
         self.batch_size = batch_size
-        self.target_life = target_life
+        self.target_replays = target_replays
 
+        self.copy_replays = copy_replays
         self.gamma = gamma  # discount rate
         self.epsilon = epsilon_start  # exploration rate
         self.epsilon_min = epsilon_min  # minimum exploration probability
@@ -113,16 +115,20 @@ class DDQN:
         self.model.fit(states, currents, epochs=1, verbose=1)
 
         # Update the target network every 100 steps
-        if self.replays % self.target_life == 0:
+        if self.replays % self.target_replays == 0:
             self.target.set_weights(self.model.get_weights())
 
         # Update the epsilon value
-        self.epsilon = max(self.epsilon_min, self.epsilon * self.epsilon_decay)
+        if self.replays >= self.copy_replays:
+            self.epsilon = max(self.epsilon_min, self.epsilon * self.epsilon_decay)
 
         # Increment the number of replays
         self.replays += 1
 
-    def act(self, state):
+    def act(self, state, ghost_action):
+        if self.replays < self.copy_replays:
+            return ghost_action
+
         if np.random.rand() <= self.epsilon:
             return random.randrange(self.output_dims)
 
@@ -180,7 +186,7 @@ def ghostRider(state) -> int:
         ghost_AWC,
     ) = state
 
-    if ghost_gradient <= 0:
+    if ghost_gradient >= 0:
         return 10
     else:
         return 8
@@ -200,11 +206,12 @@ agent = DDQN(
     output_dims=env.action_space + 1,
     dense_layers=[24, 24, 24],
     dropout=0.1,
+    copy_replays=1000,
     gamma=0.9,
     epsilon_start=1,
     epsilon_decay=0.9999,
     epsilon_min=0.01,
-    target_life=50,
+    target_replays=50,
     memory_size=20000,
     batch_size=64,
     lr_start=0.01,
@@ -221,7 +228,7 @@ for e in range(0, episodes):
     while True:
         print(f"---------Episode: {e}/{episodes}, Step: {env.step_count}-----------")
 
-        action = agent.act(cur_state)
+        action = agent.act(cur_state, env.ghost_action)
 
         next_state, reward, terminated, truncated, next_info = env.step(action)
 
@@ -256,6 +263,9 @@ for e in range(0, episodes):
         cur_state, cur_info = next_state, next_info
 
         if terminated or truncated:
+            if not os.path.exists("./weights"):
+                os.makedirs("./weights")
+
             agent.model.save(f"./weights/{MODEL_SLUG}.keras")
 
             write_row(
