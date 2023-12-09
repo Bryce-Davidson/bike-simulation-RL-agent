@@ -202,6 +202,7 @@ class GhostEnv:
         return self.state, reward, terminated, truncated, info
 
     def reset(self, start: int = None):
+        self.ghost_env.reset()
         self.step_count = 0
         self.cur_AWC_j = RIDER_AWC_j
         self.cur_velocity = 0
