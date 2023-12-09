@@ -141,7 +141,7 @@ class DDQN:
 course = "testCourse"
 distance = 400
 
-log_path = f"./logs"
+TRAINED_PATH = f"./trained"
 
 MODEL_SLUG = (
     f"ADDQN-{distance}m-{course}-{datetime.datetime.now().strftime('%d-%m-%Y_%H:%M')}"
@@ -225,21 +225,22 @@ for e in range(0, episodes):
     while True:
         print(f"---------Episode: {e}/{episodes}, Step: {env.step_count}-----------")
 
+        ghost_action = env.ghost_action
         action = agent.act(cur_state, env.ghost_action)
 
+        next_state, reward, terminated, truncated, next_info = env.step(action)
+
         write_row(
-            path=f"./models/trained/{MODEL_SLUG}/logs/actions.csv",
+            path=f"{TRAINED_PATH}/{MODEL_SLUG}/logs/actions.csv",
             data={
+                **next_info,
                 "episode": e,
                 "action": action,
-                "ghost_action": env.ghost_action,
+                "ghost_action": ghost_action,
                 "step": env.step_count,
-                "percent_complete": cur_info["percent_complete"],
                 "total_reward": total_reward,
             },
         )
-
-        next_state, reward, terminated, truncated, next_info = env.step(action)
 
         total_reward += reward
 
@@ -262,13 +263,13 @@ for e in range(0, episodes):
         cur_state, cur_info = next_state, next_info
 
         if terminated or truncated:
-            if not os.path.exists("./models/trained/"):
-                os.makedirs("./models/trained/")
+            if not os.path.exists(TRAINED_PATH):
+                os.makedirs(TRAINED_PATH)
 
-            agent.model.save(f"./models/trained/{MODEL_SLUG}/weights.keras")
+            agent.model.save(f"{TRAINED_PATH}/{MODEL_SLUG}/weights.keras")
 
             write_row(
-                path=f"./trained/{MODEL_SLUG}/logs/episodes.csv",
+                path=f"{TRAINED_PATH}/{MODEL_SLUG}/logs/episodes.csv",
                 data={
                     "episode": e,
                     "epsilon": agent.epsilon,
