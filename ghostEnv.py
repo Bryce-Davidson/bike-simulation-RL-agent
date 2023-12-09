@@ -5,7 +5,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 
 from typing import Callable
 import numpy as np
-from gym.spaces import Box, Discrete, Tuple
+from env import RiderEnv
 
 RIDER_AWC_MIN = 0  # in watts/kg
 RIDER_AWC_MAX = 10000  # in watts/kg
@@ -28,9 +28,10 @@ def max_power(AWC_j):
     return 7e-6 * AWC_j**2 + 0.0023 * AWC_j + RIDER_CP_w
 
 
-class RiderEnv:
+class GhostEnv:
     def __init__(
         self,
+        ghost: Callable[[np.ndarray], int],
         reward: Callable[[int], float],
         gradient: Callable[[float], float],
         distance: int = 1000,
@@ -44,9 +45,19 @@ class RiderEnv:
         if not callable(reward):
             raise ValueError("Reward must be a callable function")
 
+        if not callable(ghost):
+            raise ValueError("Ghost strategy must be a callable function")
+
         # Environment variables
         # ---------------------------
         self.render_mode = None
+        self.ghost = ghost
+        self.ghost_env = RiderEnv(
+            reward=lambda x: 0,
+            gradient=gradient,
+            distance=distance,
+            num_actions=num_actions,
+        )
 
         self.step_count = 0
         self.gradient = gradient
@@ -73,6 +84,11 @@ class RiderEnv:
                 self.gradient(self.cur_position),  # gradient
                 self.cur_position / self.COURSE_DISTANCE,  # percent_complete
                 self.cur_AWC_j,  # AWC
+                self.ghost_env.state[0],  # ghost_power_max_w
+                self.ghost_env.state[1],  # ghost_velocity
+                self.ghost_env.state[2],  # ghost_gradient
+                self.ghost_env.state[3],  # ghost_percent_complete
+                self.ghost_env.state[4],  # ghost_AWC
             ]
         )
 
@@ -95,8 +111,10 @@ class RiderEnv:
                 f"Invalid action: {action}. Must be between 0 and {self.action_space}"
             )
 
-        # Step count
-        self.step_count += 1
+        # Ghost step
+        # -------------------------------------------------
+        ghost_action = self.ghost(self.ghost_env.state)
+        self.ghost_env.step(ghost_action)
 
         # Normalize action
         action = action / self.action_space
@@ -176,6 +194,9 @@ class RiderEnv:
                 "reward": reward,
             }
         )
+
+        # Step count
+        self.step_count += 1
 
         return self.state, reward, terminated, truncated, info
 

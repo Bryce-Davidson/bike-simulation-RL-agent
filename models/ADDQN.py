@@ -7,7 +7,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 from collections import deque
 from lib.logs import write_row
 from lib.JsonEncoders import NpEncoder
-from env import RiderEnv
+from ghostEnv import GhostEnv
 from courses import testCourse
 from keras.optimizers.legacy import Adam
 from keras.layers import Dense, Dropout, Flatten
@@ -151,12 +151,19 @@ def reward_fn(state):
         agent_gradient,
         agent_percent_complete,
         AWC,
+        ghost_power_max_w,
+        ghost_velocity,
+        ghost_gradient,
+        ghost_percent_complete,
+        ghost_AWC,
     ) = state
 
     reward = -1
 
-    if agent_percent_complete >= 1:
-        reward += 100
+    reward += agent_percent_complete - ghost_percent_complete
+
+    if agent_percent_complete >= 1 and ghost_percent_complete < 1:
+        reward += 1000
 
     if agent_velocity < 0:
         reward -= 100
@@ -166,7 +173,29 @@ def reward_fn(state):
 
 # -------------------------TRAINING-----------------------------
 
-env = RiderEnv(gradient=testCourse, distance=distance, reward=reward_fn, num_actions=10)
+
+def ghostRider(state):
+    (
+        ghost_power_max_w,
+        ghost_velocity,
+        ghost_gradient,
+        ghost_percent_complete,
+        ghost_AWC,
+    ) = state
+
+    if ghost_gradient < 0:
+        return 10
+    else:
+        return 8
+
+
+env = GhostEnv(
+    gradient=testCourse,
+    distance=distance,
+    reward=reward_fn,
+    num_actions=10,
+    ghost=ghostRider,
+)
 
 # Create the agent
 agent = DDQN(
