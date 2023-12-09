@@ -180,7 +180,7 @@ def ghostRider(state):
         ghost_AWC,
     ) = state
 
-    if ghost_gradient < 0:
+    if ghost_gradient <= 0:
         return 10
     else:
         return 8
@@ -191,7 +191,7 @@ env = GhostEnv(
     gradient=testCourse,
     distance=distance,
     reward=reward_fn,
-    num_actions=10,
+    num_actions=50,
 )
 
 # Create the agent
@@ -200,16 +200,16 @@ agent = DDQN(
     output_dims=env.action_space + 1,
     dense_layers=[200, 200, 200],
     dropout=0.2,
-    gamma=0.5,
+    gamma=0.1,
     epsilon_start=1,
     epsilon_decay=0.9999,
     epsilon_min=0.01,
     target_life=100,
     memory_size=20000,
     batch_size=64,
-    lr_start=0.1,
+    lr_start=0.001,
     lr_decay=0.9,
-    lr_decay_steps=5000,
+    lr_decay_steps=5_000,
 )
 
 # Define the number of episodes
