@@ -160,7 +160,12 @@ def reward_fn(state):
 
     reward = -1
 
-    reward += agent_percent_complete - ghost_percent_complete
+    diff = agent_percent_complete - ghost_percent_complete
+
+    reward += diff
+
+    if diff > 0:
+        reward += 100
 
     if agent_velocity < 0:
         reward -= 100
@@ -181,9 +186,9 @@ def ghostRider(state):
     ) = state
 
     if ghost_gradient <= 0:
-        return 10
+        return 50
     else:
-        return 8
+        return 50 * 0.8
 
 
 env = GhostEnv(
