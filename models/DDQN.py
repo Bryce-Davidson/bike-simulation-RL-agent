@@ -138,7 +138,7 @@ distance = 400
 TRAINED_PATH = f"./trained"
 
 MODEL_SLUG = (
-    f"ADDQN-{distance}m-{course}-{datetime.datetime.now().strftime('%d-%m-%Y_%H:%M')}"
+    f"DDQN-{distance}m-{course}-{datetime.datetime.now().strftime('%d-%m-%Y_%H:%M')}"
 )
 
 # -------------------------REWARDS--------------------------
@@ -156,10 +156,10 @@ def reward_fn(state):
     reward = -1
 
     if agent_gradient >= 0:
-        reward -= AWC * 0.001
+        reward -= AWC * 0.1
 
     if agent_gradient < 0:
-        reward += AWC * 0.001
+        reward += AWC * 0.1
 
     if agent_velocity < 0:
         reward -= 100
@@ -178,18 +178,18 @@ env = RiderEnv(gradient=testCourse, distance=distance, reward=reward_fn, num_act
 agent = DDQN(
     input_dims=len(env.state),
     output_dims=env.action_space + 1,
-    dense_layers=[200, 200, 200, 200],
-    dropout=0.2,
+    dense_layers=[24, 24, 24],
+    dropout=0,
     gamma=0.9,
     epsilon_start=1,
-    epsilon_decay=0.9999,
-    epsilon_min=0,
-    target_life=100,
+    epsilon_decay=0.9995,
+    epsilon_min=0.01,
+    target_life=10,
     memory_size=20000,
-    batch_size=64,
-    lr_start=0.01,
-    lr_decay=0.9,
-    lr_decay_steps=2000,
+    batch_size=1024,
+    lr_start=0.00001,
+    lr_decay=1,
+    lr_decay_steps=0,
 )
 
 # Define the number of episodes

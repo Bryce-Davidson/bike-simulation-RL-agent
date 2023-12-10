@@ -15,6 +15,10 @@ def rider100(grad):
     return 10
 
 
+def rider90(grad):
+    return 9
+
+
 def rider100_80(grad):
     action = 10
     if grad < 0:
@@ -30,7 +34,7 @@ distance = 400
 # --------------------------------------------------------------
 
 if __name__ == "__main__":
-    models = [(rider100, "10"), (rider100_80, "10:8")]
+    models = [(rider100, "10"), (rider100_80, "10:8"), (rider90, "9")]
 
     for model, model_name in models:
         env = RiderEnv(gradient=testCourse, distance=distance, reward=lambda x: 0)
