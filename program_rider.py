@@ -4,7 +4,7 @@ import keras
 import time
 import json
 
-from courses import testCourse
+from courses import tenByOneKm
 from env import RiderEnv
 from lib.JsonEncoders import NpEncoder
 
@@ -28,8 +28,8 @@ def rider100_80(grad):
 
 # --------------------------------------------------------------
 
-course_name = "testCourse"
-distance = 400
+course_name = "tenByOneKm"
+distance = 10_000
 
 # --------------------------------------------------------------
 
@@ -37,7 +37,7 @@ if __name__ == "__main__":
     models = [(rider100, "10"), (rider100_80, "10:8"), (rider90, "9")]
 
     for model, model_name in models:
-        env = RiderEnv(gradient=testCourse, distance=distance, reward=lambda x: 0)
+        env = RiderEnv(gradient=tenByOneKm, distance=distance, reward=lambda x: 0)
 
         data = []
 
