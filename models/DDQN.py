@@ -20,9 +20,6 @@ import json
 
 np.set_printoptions(suppress=True)
 
-# Set the random seed for reproducibility
-random.seed(0)
-
 
 class DDQN:
     def __init__(
@@ -158,11 +155,17 @@ def reward_fn(state):
 
     reward = -1
 
-    if agent_percent_complete >= 1:
-        reward += 100
+    if agent_gradient > 0:
+        reward -= AWC * 0.01
+
+    if agent_gradient < 0:
+        reward += AWC * 0.01
 
     if agent_velocity < 0:
         reward -= 100
+
+    if agent_percent_complete >= 1:
+        return 1000
 
     return reward
 
@@ -175,27 +178,24 @@ env = RiderEnv(gradient=testCourse, distance=distance, reward=reward_fn, num_act
 agent = DDQN(
     input_dims=len(env.state),
     output_dims=env.action_space + 1,
-    dense_layers=[24, 24],
+    dense_layers=[200, 200, 200, 200],
     dropout=0.2,
-    gamma=0.5,
+    gamma=0.9,
     epsilon_start=1,
-    epsilon_decay=0.99,
+    epsilon_decay=0.9999,
     epsilon_min=0.01,
     target_life=100,
     memory_size=20000,
     batch_size=64,
-    lr_start=0.1,
+    lr_start=0.001,
     lr_decay=0.9,
-    lr_decay_steps=100,
+    lr_decay_steps=5000,
 )
 
 # Define the number of episodes
 episodes = 100000
 for e in range(0, episodes):
     cur_state, cur_info = env.reset()
-
-    if e % 10 == 0 and e > 0:
-        agent.epsilon = 1
 
     total_reward = 0
     while True:
