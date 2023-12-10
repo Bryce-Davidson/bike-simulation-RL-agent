@@ -156,10 +156,10 @@ def reward_fn(state):
     reward = -1
 
     if agent_gradient >= 0:
-        reward -= AWC * 0.0001
+        reward -= AWC * 0.001
 
     if agent_gradient < 0:
-        reward += AWC * 0.0001
+        reward += AWC * 0.001
 
     if agent_velocity < 0:
         reward -= 100
@@ -183,13 +183,13 @@ agent = DDQN(
     gamma=0.9,
     epsilon_start=1,
     epsilon_decay=0.9999,
-    epsilon_min=0.01,
+    epsilon_min=0,
     target_life=100,
     memory_size=20000,
-    batch_size=128,
-    lr_start=0.001,
+    batch_size=64,
+    lr_start=0.01,
     lr_decay=0.9,
-    lr_decay_steps=5000,
+    lr_decay_steps=2000,
 )
 
 # Define the number of episodes
