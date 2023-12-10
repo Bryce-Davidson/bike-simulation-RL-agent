@@ -155,11 +155,11 @@ def reward_fn(state):
 
     reward = -1
 
-    if agent_gradient > 0:
-        reward -= AWC * 0.01
+    if agent_gradient >= 0:
+        reward -= AWC * 0.0001
 
     if agent_gradient < 0:
-        reward += AWC * 0.01
+        reward += AWC * 0.0001
 
     if agent_velocity < 0:
         reward -= 100
@@ -186,7 +186,7 @@ agent = DDQN(
     epsilon_min=0.01,
     target_life=100,
     memory_size=20000,
-    batch_size=64,
+    batch_size=128,
     lr_start=0.001,
     lr_decay=0.9,
     lr_decay_steps=5000,
