@@ -8,7 +8,7 @@ from collections import deque
 from lib.logs import write_row
 from lib.JsonEncoders import NpEncoder
 from env import RiderEnv
-from courses import tenByOneKm
+from courses import testCourse
 from keras.optimizers.legacy import Adam
 from keras.layers import Dense, Dropout, Flatten
 import datetime
@@ -107,7 +107,7 @@ class DDQN:
         for i, action in enumerate(actions):
             currents[i][action] = rewards[i]
             if not terminals[i]:
-                currents[i][action] += self.gamma * np.amax(nexts[i])
+                currents[i][action] += self.gamma * np.max(nexts[i])
 
         self.model.fit(states, currents, epochs=1, verbose=1)
 
@@ -131,8 +131,8 @@ class DDQN:
 
 # -------------------------LOGS---------------------------------
 
-course = "tenByOneKm"
-distance = 10_000
+course = "testCourse"
+distance = 400
 
 TRAINED_PATH = f"./trained"
 
@@ -171,7 +171,7 @@ def reward_fn(state):
 
 # -------------------------TRAINING-----------------------------
 
-env = RiderEnv(gradient=tenByOneKm, distance=distance, reward=reward_fn, num_actions=10)
+env = RiderEnv(gradient=testCourse, distance=distance, reward=reward_fn, num_actions=10)
 
 # Create the agent
 agent = DDQN(
