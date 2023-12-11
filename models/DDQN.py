@@ -186,11 +186,11 @@ agent = DDQN(
     epsilon_decay=0.9995,
     epsilon_min=0.01,
     target_life=10,
-    memory_size=10000,
-    batch_size=1024,
-    lr_start=0.00001,
-    lr_decay=1,
-    lr_decay_steps=0,
+    memory_size=1000,
+    batch_size=64,
+    lr_start=0.0001,
+    lr_decay=0.9995,
+    lr_decay_steps=200,
 )
 
 # Define the number of episodes
