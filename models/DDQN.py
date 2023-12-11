@@ -125,10 +125,10 @@ class DDQN:
 
     def act(self, state):
         if np.random.rand() <= self.epsilon:
-            return random.randrange(self.output_dims)
+            return random.randrange(self.output_dims), "random"
 
         state = np.array([state])
-        return np.argmax(self.model.predict(state, verbose=0)[0])
+        return np.argmax(self.model.predict(state, verbose=0)[0]), "predicted"
 
 
 # -------------------------LOGS---------------------------------
@@ -173,24 +173,26 @@ def reward_fn(state):
 
 # -------------------------TRAINING-----------------------------
 
-env = RiderEnv(gradient=testCourse, distance=distance, reward=reward_fn, num_actions=10)
+env = RiderEnv(
+    gradient=testCourse, distance=distance, reward=reward_fn, num_actions=100
+)
 
 # Create the agent
 agent = DDQN(
     input_dims=len(env.state),
     output_dims=env.action_space + 1,
-    dense_layers=[24, 24, 24],
+    dense_layers=[24, 25, 24],
     dropout=0,
     gamma=0.9,
     epsilon_start=1,
     epsilon_decay=0.9995,
     epsilon_min=0.01,
-    target_life=10,
-    memory_size=1000,
-    batch_size=64,
+    target_life=15,
+    memory_size=20000,
+    batch_size=128,
     lr_start=0.0001,
-    lr_decay=0.9995,
-    lr_decay_steps=200,
+    lr_decay=1,
+    lr_decay_steps=0,
 )
 
 # Define the number of episodes
@@ -202,7 +204,7 @@ for e in range(0, episodes):
     while True:
         print(f"---------Episode: {e}/{episodes}, Step: {env.step_count}-----------")
 
-        action = agent.act(cur_state)
+        action, action_type = agent.act(cur_state)
 
         next_state, reward, terminated, truncated, next_info = env.step(action)
 
@@ -214,6 +216,7 @@ for e in range(0, episodes):
                 **next_info,
                 "episode": e,
                 "action": action,
+                "action_type": action_type,
                 "step": env.step_count,
                 "total_reward": total_reward,
             },
