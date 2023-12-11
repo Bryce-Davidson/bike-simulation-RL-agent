@@ -100,6 +100,7 @@ class DDQN:
 
         # Predict states using the current network
         currents = self.model.predict(states, verbose=0)
+        Q_nexts = self.model.predict(np.array(next_states), verbose=0)
         # Predict next states using the target network
         nexts = self.target.predict(np.array(next_states), verbose=0)
 
@@ -107,7 +108,8 @@ class DDQN:
         for i, action in enumerate(actions):
             currents[i][action] = rewards[i]
             if not terminals[i]:
-                currents[i][action] += self.gamma * np.max(nexts[i])
+                argmax = np.argmax(Q_nexts[i])
+                currents[i][action] += self.gamma * nexts[i][argmax]
 
         self.model.fit(states, currents, epochs=1, verbose=1)
 
