@@ -70,7 +70,7 @@ distance = 1200
 
 log_path = f"./logs"
 
-slug = f"DQN-{distance}m-{course}-{datetime.datetime.now().strftime('%d-%m-%Y_%H:%M')}"
+slug = f"DQN-{distance}m-{course}-{datetime.datetime.now().strftime('%d-%m-%Y_%H_%M')}"
 
 log_slug = f"{log_path}/{slug}.csv"
 

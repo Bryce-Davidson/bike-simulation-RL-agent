@@ -147,7 +147,7 @@ distance = 400
 TRAINED_PATH = f"./trained"
 
 MODEL_SLUG = (
-    f"ADDQN-{distance}m-{course}-{datetime.datetime.now().strftime('%d-%m-%Y_%H:%M')}"
+    f"ADDQN-{distance}m-{course}-{datetime.datetime.now().strftime('%d-%m-%Y_%H_%M')}"
 )
 
 # -------------------------REWARDS--------------------------

@@ -43,9 +43,9 @@ distance = 400
 if __name__ == "__main__":
     models = [
         (rider100, "10"),
-        (rider100_80, "10:8"),
+        (rider100_80, "10_8"),
         (rider90, "9"),
-        (rider100_90, "10:9"),
+        (rider100_90, "10_9"),
     ]
 
     for model, model_name in models:
