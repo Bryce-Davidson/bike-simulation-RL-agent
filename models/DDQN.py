@@ -8,7 +8,7 @@ from collections import deque
 from lib.logs import write_row
 from lib.JsonEncoders import NpEncoder
 from env import RiderEnv
-from courses import tenByOneKm
+from courses import testCourse
 from keras.optimizers.legacy import Adam
 from keras.layers import Dense, Dropout, Flatten
 import datetime
@@ -97,19 +97,23 @@ class DDQN:
         states, actions, rewards, next_states, terminals = zip(*batch)
 
         states = np.array(states)
+        next_states = np.array(next_states)
 
         # Predict states using the current network
-        currents = self.model.predict(states, verbose=0)
+        Q_cur = self.model.predict(states, verbose=0)
+        Q_cur_next_states = self.model.predict(next_states, verbose=0)
+
         # Predict next states using the target network
-        nexts = self.target.predict(np.array(next_states), verbose=0)
+        T_nexts = self.target.predict(next_states, verbose=0)
 
         # Update the current network with the new values
         for i, action in enumerate(actions):
-            currents[i][action] = rewards[i]
+            Q_cur[i][action] = rewards[i]
+            argmax_Q = np.argmax(Q_cur_next_states[i])
             if not terminals[i]:
-                currents[i][action] += self.gamma * np.amax(nexts[i])
+                Q_cur[i][action] += self.gamma * T_nexts[i][argmax_Q]
 
-        self.model.fit(states, currents, epochs=1, verbose=1)
+        self.model.fit(states, Q_cur, epochs=1, verbose=1)
 
         # Update the target network every 100 steps
         if self.replays % self.target_life == 0:
@@ -131,8 +135,8 @@ class DDQN:
 
 # -------------------------LOGS---------------------------------
 
-course = "tenByOneKm"
-distance = 10_000
+course = "testCourse"
+distance = 400
 
 TRAINED_PATH = f"./trained"
 
@@ -171,7 +175,7 @@ def reward_fn(state):
 
 # -------------------------TRAINING-----------------------------
 
-env = RiderEnv(gradient=tenByOneKm, distance=distance, reward=reward_fn, num_actions=10)
+env = RiderEnv(gradient=testCourse, distance=distance, reward=reward_fn, num_actions=10)
 
 # Create the agent
 agent = DDQN(
