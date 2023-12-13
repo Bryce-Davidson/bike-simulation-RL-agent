@@ -17,7 +17,7 @@ Reinforcement learning is a type of machine learning that models a learning algo
 
 ## Objective of Reinforcement Algorithms
 
-The objective of reinforcement algorithms is to take an MDP as input, and produce an optimal policy function $\pi_*$ as output, which tells an agent the best action to choose in any given state in order to maximise the expected discounted cumulative reward from that state. The expected value of following a policy $\pi$ from state s, can be represented as a function $V^\pi(s)$ defined as follows,
+The objective of our reinforcement algorithm is to take an MDP as input, and produce an optimal policy function $\pi_*$ as output, which tells an agent the best action to choose in any given state in order to maximise the expected discounted cumulative reward from that state. The expected value of following a policy $\pi$ from state s, can be represented as a function $V^\pi(s)$ defined as follows,
 
 $$V^\pi(s) = E_\pi[\sum_i \gamma^ir(s_i,a_i,s_{i+1})\mid s_0=s, a_i = \pi(s)]$$
 
@@ -27,7 +27,7 @@ $$V(s) = \underset{a\in A(s)}{max} \sum_{{s}' \in S}P_a({s}' \mid s)[r(s,a,{s}')
 
 Subsequently, the optimal policy can be extracted by choosing actions which satisfy the following,
 
-$$\pi_*(s) = {\text{argmax}}_{a\in A(s)} \sum_{{s}' \in S}P_a({s}' \mid s)[r(s,a,{s}')+\gamma V({s}')]$$
+$$\pi_*(s) = \text{argmax}_{a\in A(s)} \sum_{{s}' \in S}P_a({s}' \mid s)[r(s,a,{s}')+\gamma V({s}')]$$
 
 We can simplify this expression by defining a function which represents the value of choosing action $a$ in state $s$ and then following the policy $\pi$.
 
