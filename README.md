@@ -1,4 +1,4 @@
-> :warning: **Warning: this is a latex to mathjax conversion, read the full paper under `paper.pdf`**
+> :warning: **Warning: this is a latex to mathjax conversion, read the full paper under [`./paper.pdf`](./paper.pdf)**
 
 # Reinforcement Learning Overview
 
