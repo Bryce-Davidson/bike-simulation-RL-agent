@@ -27,7 +27,7 @@ $$V(s) = \underset{a\in A(s)}{max} \sum_{{s}' \in S}P_a({s}' \mid s)[r(s,a,{s}')
 
 Subsequently, the optimal policy can be extracted by choosing actions which satisfy the following,
 
-$$\pi_*(s) = {argmax}_{a\in A(s)} \sum_{{s}' \in S}P_a({s}' \mid s)[r(s,a,{s}')+\gamma V({s}')]$$
+$$\pi_*(s) = \arg\max_{a\in A(s)} \sum_{{s}' \in S}P_a({s}' \mid s)[r(s,a,{s}')+\gamma V({s}')]$$
 
 We can simplify this expression by defining a function which represents the value of choosing action $a$ in state $s$ and then following the policy $\pi$.
 
