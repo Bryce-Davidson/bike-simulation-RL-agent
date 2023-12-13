@@ -1,3 +1,5 @@
+> :warning: **Warning: this is a latex to mathjax conversion, read the full paper under `paper.pdf`**
+
 # Reinforcement Learning Overview
 
 The goal of this project is to explore the double Q-learning algorithm, as cited by Van Hasselt et al. [2015], as a method for solving Markov decision processes. Our objective is to optimize a cyclist's power output for a race, as inspired by Anna Kiesenhofer's mathematical approach, which won her the 2021 Tokyo Olympics women's road race. We use the concepts of critical power (CP) and Anaerobic Work Capacity (AWC or W') as our physiological constraints and simple physics equations derived from Newton's Second Law of Motion as our mechanical constraints.
@@ -23,7 +25,7 @@ $$V^\pi(s) = E_\pi[\sum_i \gamma^ir(s_i,a_i,s_{i+1})\mid s_0=s, a_i = \pi(s)]$$
 
 In order to ensure the policy $\pi$ is the optimal policy $\pi_*$, the function $V(s)$ must satisfy the Bellman Equation.
 
-$$V(s) = \underset{a\in A(s)}{max} \sum_{{s}' \in S}P_a({s}' \mid s)[r(s,a,{s}')+\gamma V({s}')]$$
+$$V(s) = \underset{a\in A(s)}{\max} \sum_{{s}' \in S}P_a({s}' \mid s)[r(s,a,{s}')+\gamma V({s}')]$$
 
 Subsequently, the optimal policy can be extracted by choosing actions which satisfy the following,
 
