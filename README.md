@@ -46,3 +46,5 @@ The environment was built around the equations and constants referenced in the a
 Following the implementation of the environment, our next challenge was to devise a reward function that would guide our agent's learning process. Given that our agent's objective is to complete the race as swiftly as possible, we initially set a negative existence reward for each step taken, coupled with a substantial positive reward upon course completion. Furthermore, we aimed to prevent scenarios where the velocity drops below zero, as such situations are undesirable in any racing context. Therefore, we assigned a significant negative reward whenever the current state exhibited a velocity less than zero.
 
 The next step was to train the agent we used the Double Deep Q Networks method which is described in the following section.
+
+> Continue reading the full paper [`./paper.pdf`](./paper.pdf)
