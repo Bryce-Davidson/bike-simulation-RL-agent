@@ -35,7 +35,7 @@ $$Q(s,a) = \sum_{{s}' \in S}P_a({s}' \mid s)[r(s,a,{s}')+\gamma V({s}')]$$
 
 The optimal policy can then be reformulated as the following which will be the foundation of the Q-learning method,
 
-$$\pi_*(s) = {\text{argmax}}_{a\in A(s)} Q(s,a)$$
+$$\pi_*(s) = \arg\max_{a\in A(s)} Q(s,a)$$
 
 ## Building the Environment
 
